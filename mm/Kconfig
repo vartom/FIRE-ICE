@@ -505,6 +505,17 @@ config FRONTSWAP
 
 	  If unsure, say Y to enable frontswap.
 
+config USE_USER_ACCESSIBLE_TIMERS
+	bool "Enables timers accessible from userspace"
+	depends on MMU
+	help
+	  User-accessible timers allow the kernel to map kernel timer
+	  registers to a userspace accessible page, to allow faster
+	  access to time information.  This flag will enable the
+	  interface code in the main kernel.  However, there are
+	  architecture-specific code that will need to be enabled
+	  separately.
+	  
 config ZBUD
 	tristate
 	default n
@@ -564,7 +575,6 @@ config PROCESS_RECLAIM
 	 (echo file > /proc/PID/reclaim) reclaims file-backed pages only.
 	 (echo anon > /proc/PID/reclaim) reclaims anonymous pages only.
 	 (echo all > /proc/PID/reclaim) reclaims all pages.
-
 	 (echo addr size-byte > /proc/PID/reclaim) reclaims pages in
 	 (addr, addr + size-bytes) of the process.
 
