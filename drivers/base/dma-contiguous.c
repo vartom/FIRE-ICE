@@ -33,11 +33,14 @@
 #include <linux/swap.h>
 #include <linux/mm_types.h>
 #include <linux/dma-contiguous.h>
+#include <trace/events/kmem.h>
 #include <linux/dma-mapping.h>
 
 #include <asm/tlbflush.h>
 #include <asm/cacheflush.h>
 #include <asm/outercache.h>
+
+
 
 struct cma {
 	unsigned long	base_pfn;
@@ -353,6 +356,7 @@ struct page *dma_alloc_at_from_contiguous(struct device *dev, int count,
 	struct page *page = NULL;
 	int ret;
 	unsigned long start_pfn = __phys_to_pfn(at_addr);
+	int tries = 0;
 
 	if (!cma || !cma->count)
 		return NULL;
@@ -396,6 +400,9 @@ retry:
 		} else if (ret != -EBUSY || start) {
 			break;
 		}
+		tries++;
+		trace_dma_alloc_contiguous_retry(tries);
+
 		pr_debug("%s(): memory range at %p is busy, retrying\n",
 			 __func__, pfn_to_page(pfn));
 		/* try again with a bit different memory target */
