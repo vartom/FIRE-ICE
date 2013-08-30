@@ -25,8 +25,12 @@ config SPARC
 	select RTC_DRV_M48T59
 	select HAVE_DMA_ATTRS
 	select HAVE_DMA_API_DEBUG
+<<<<<<< HEAD
 	select HAVE_ARCH_JUMP_LABEL if SPARC64
 	select HAVE_GENERIC_HARDIRQS
+=======
+	select HAVE_ARCH_JUMP_LABEL
+>>>>>>> ac7df0d... Remove GENERIC_HARDIRQ config option
 	select GENERIC_IRQ_SHOW
 	select ARCH_WANT_IPC_PARSE_VERSION
 	select GENERIC_PCI_IOMAP
