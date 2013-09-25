@@ -37,6 +37,7 @@
 #include "t210/t210.h"
 #include "vi.h"
 #include "vi_irq.h"
+#include "camera_priv_defs.h"
 
 #define MAX_DEVID_LENGTH	16
 #define TEGRA_VI_NAME		"tegra_vi"
