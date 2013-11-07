@@ -389,9 +389,9 @@
 		CALL(sys_process_vm_writev)
 		CALL(sys_kcmp)
 		CALL(sys_finit_module)
-/* 380 */	CALL(sys_ni_syscall)		/* reserved sys_sched_setattr */
-		CALL(sys_ni_syscall)		/* reserved sys_sched_getattr */
-		CALL(sys_ni_syscall)		/* reserved sys_renameat2     */
+/* 380 */	CALL(sys_sched_setattr)
+		CALL(sys_sched_getattr)
+		CALL(sys_ni_syscall) /* CALL(sys_renameat2) */
 		CALL(sys_seccomp)
 
 #ifndef syscalls_counted
