@@ -65,6 +65,24 @@ static inline int tegra_dvfs_rail_get_suspend_level(struct dvfs_rail *rail)
 	return rail->suspend_millivolts ? : rail->nominal_millivolts;
 }
 
+int tegra_dvfs_get_core_override_floor(void)
+{
+	return tegra_dvfs_rail_get_override_floor(tegra_core_rail);
+}
+EXPORT_SYMBOL(tegra_dvfs_get_core_override_floor);
+
+int tegra_dvfs_get_core_nominal_millivolts(void)
+{
+	return tegra_dvfs_rail_get_nominal_millivolts(tegra_core_rail);
+}
+EXPORT_SYMBOL(tegra_dvfs_get_core_nominal_millivolts);
+
+int tegra_dvfs_get_core_boot_level(void)
+{
+	return tegra_dvfs_rail_get_boot_level(tegra_core_rail);
+}
+EXPORT_SYMBOL(tegra_dvfs_get_core_boot_level);
+
 unsigned long tegra_dvfs_get_fmax_at_vmin_safe_t(struct clk *c)
 {
 	if (!c->dvfs)
