@@ -323,6 +323,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	int selected_tasksize = 0;
 	short selected_oom_score_adj;
 	int array_size = ARRAY_SIZE(lowmem_adj);
+	struct sysinfo swap_info;
 	int other_free;
 	int other_file;
 	unsigned long nr_to_scan = sc->nr_to_scan;
@@ -351,6 +352,9 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 						total_swapcache_pages();
 	else
 		other_file = 0;
+
+	si_swapinfo(&swap_info);
+	other_free += swap_info.freeswap;
 
 	memset(zall, 0, sizeof(zall));
 	tune_lmk_param(&other_free, &other_file, sc, zall);
