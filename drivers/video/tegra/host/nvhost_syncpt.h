@@ -27,7 +27,8 @@
 #include <linux/atomic.h>
 
 /* when searching for free syncpt id, start from this base */
-#define NVHOST_FREE_SYNCPT_BASE 1
+#define NVHOST_FREE_SYNCPT_BASE(sp)	\
+	(nvhost_syncpt_graphics_host_sp(sp) + 1)
 
 struct nvhost_syncpt;
 
@@ -105,6 +106,8 @@ int nvhost_syncpt_nb_pts(struct nvhost_syncpt *sp);
 int nvhost_nb_syncpts_store(struct nvhost_syncpt *sp, const char *buf);
 int nvhost_syncpt_nb_mlocks(struct nvhost_syncpt *sp);
 void nvhost_syncpt_set_manager(struct nvhost_syncpt *sp, int id, bool client);
+int nvhost_syncpt_graphics_host_sp(struct nvhost_syncpt *sp);
+int nvhost_syncpt_pts_limit(struct nvhost_syncpt *sp);
 
 /**
  * Returns true if syncpoint min == max
