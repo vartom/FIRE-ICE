@@ -28,8 +28,7 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 #include <linux/tegra-soc.h>
-
-#include <mach/pm_domains.h>
+#include <linux/tegra_pm_domains.h>
 
 #include "dev.h"
 #include "nvjpg.h"
