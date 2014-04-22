@@ -128,6 +128,7 @@ struct nvhost_device_data {
 	bool		exclusive;	/* True if only one user at a time */
 	bool		keepalive;	/* Do not power gate when opened */
 	bool		serialize;	/* Serialize submits in the channel */
+	bool		virtual_dev;	/* True if virtualized device */
 
 	char		*firmware_name;	/* Name of firmware */
 
@@ -195,6 +196,7 @@ struct nvhost_device_data {
 
 	void *private_data;		/* private platform data */
 	struct platform_device *pdev;	/* owner platform_device */
+	void *virt_priv;		/* private data for virtualized dev */
 
 	struct dev_pm_qos_request no_poweroff_req;
 

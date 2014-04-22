@@ -30,3 +30,5 @@ obj-$(CONFIG_TEGRA_GRHOST) += flcn/
 obj-$(CONFIG_TEGRA_GRHOST) += t210/
 
 obj-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync.o
+
+obj-$(CONFIG_TEGRA_GRHOST) += vhost/
