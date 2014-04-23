@@ -1,9 +1,15 @@
 /*
+<<<<<<< HEAD
  * drivers/video/tegra/host/nvenc/nvenc.h
  *
  * Tegra NVENC Module Support
  *
  * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
+=======
+ * Tegra NVENC Module Support
+ *
+ * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
+>>>>>>> 7476554... video: tegra: host: Re-add NVENC support
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +27,7 @@
 #ifndef __NVHOST_NVENC_H__
 #define __NVHOST_NVENC_H__
 
+<<<<<<< HEAD
 #include <linux/nvhost.h>
 
 struct mem_handle;
@@ -92,5 +99,10 @@ struct nvenc_ucode_v1 {
 	struct sg_table *pa;
 	bool valid;
 };
+=======
+#include <linux/platform_device.h>
+
+int nvhost_nvenc_t210_finalize_poweron(struct platform_device *dev);
+>>>>>>> 7476554... video: tegra: host: Re-add NVENC support
 
 #endif

@@ -1,9 +1,15 @@
 /*
+<<<<<<< HEAD
  * drivers/video/tegra/host/nvenc/nvenc.c
  *
  * Tegra NVENC Module Support
  *
  * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
+=======
+ * Tegra NVENC Module Support
+ *
+ * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
+>>>>>>> 7476554... video: tegra: host: Re-add NVENC support
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,6 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+<<<<<<< HEAD
 #include <linux/slab.h>         /* for kzalloc */
 #include <linux/firmware.h>
 #include <linux/module.h>
@@ -544,3 +551,19 @@ static void __exit nvenc_exit(void)
 
 module_init(nvenc_init);
 module_exit(nvenc_exit);
+=======
+#include <linux/types.h>
+#include <linux/nvhost.h>
+#include "nvenc.h"
+#include "flcn/flcn.h"
+
+int nvhost_nvenc_t210_finalize_poweron(struct platform_device *dev)
+{
+	host1x_writel(dev, 0x117c, 0x18004);
+	host1x_writel(dev, 0x2200, 0x800040);
+	host1x_writel(dev, 0x2204, 0x10000000);
+	host1x_writel(dev, 0x2208, 0x0);
+
+	return nvhost_flcn_boot(dev);
+}
+>>>>>>> 7476554... video: tegra: host: Re-add NVENC support
