@@ -25,6 +25,7 @@
 #include <linux/export.h>
 #include <trace/events/nvhost.h>
 #include "nvhost_syncpt.h"
+#include "debug.h"
 
 #ifdef CONFIG_TEGRA_GRHOST_SYNC
 #include "nvhost_sync.h"
@@ -289,7 +290,7 @@ int nvhost_syncpt_wait_timeout(struct nvhost_syncpt *sp, u32 id,
 					 current->comm, id,
 					 syncpt_op().name(sp, id),
 					 thresh, timeout);
-				syncpt_op().debug(sp);
+				nvhost_syncpt_debug(sp);
 			} else {
 				old_val = new_val;
 				dev_warn(&syncpt_to_dev(sp)->dev->dev,
@@ -492,11 +493,6 @@ int nvhost_syncpt_compare(
 	future_val = (u32)atomic_read(&sp->max_val[id]);
 	return _nvhost_syncpt_compare(current_val, future_val,
 				      has_future_val, thresh_a, thresh_b);
-}
-
-void nvhost_syncpt_debug(struct nvhost_syncpt *sp)
-{
-	syncpt_op().debug(sp);
 }
 
 int nvhost_mutex_try_lock(struct nvhost_syncpt *sp, int idx)
