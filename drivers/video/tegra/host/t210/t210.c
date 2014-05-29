@@ -32,7 +32,6 @@
 #include "msenc/msenc.h"
 #include "nvdec/nvdec.h"
 #include "nvjpg/nvjpg.h"
-#include "nvenc/nvenc.h"
 #include "tsec/tsec.h"
 #include "vic03/vic03.h"
 #include "vi/vi.h"
