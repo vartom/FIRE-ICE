@@ -60,6 +60,7 @@
 #include "gk20a_scale.h"
 #include "dbg_gpu_gk20a.h"
 #include "hal.h"
+#include "nvhost_acm.h"
 
 #ifdef CONFIG_ARM64
 #define __cpuc_flush_dcache_area __flush_dcache_area
@@ -1232,8 +1233,10 @@ static int gk20a_pm_suspend(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	int ret = 0;
 
+#ifdef CONFIG_PM_RUNTIME
 	if (atomic_read(&dev->power.usage_count) > 1)
 		return -EBUSY;
+#endif
 
 	ret = gk20a_pm_prepare_poweroff(dev);
 	if (ret)
@@ -1259,8 +1262,10 @@ static int gk20a_pm_initialise_domain(struct platform_device *pdev)
 
 	domain->name = "gpu";
 
+#ifdef CONFIG_PM_RUNTIME
 	if (!platform->can_railgate)
 		pm_domain_gov = &pm_domain_always_on_gov;
+#endif
 
 	pm_genpd_init(domain, pm_domain_gov, true);
 
@@ -1611,6 +1616,7 @@ void gk20a_reset(struct gk20a *g, u32 units)
 	gk20a_enable(g, units);
 }
 
+#ifdef CONFIG_PM_RUNTIME
 /**
  * gk20a_do_idle() - force the GPU to idle and railgate
  *
@@ -1694,6 +1700,7 @@ int gk20a_do_unidle(void)
 
 	return 0;
 }
+#endif
 
 int gk20a_init_gpu_characteristics(struct gk20a *g)
 {
