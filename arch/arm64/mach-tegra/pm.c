@@ -206,17 +206,7 @@ static enum tegra_suspend_mode current_suspend_mode = TEGRA_SUSPEND_NONE;
 void (*tegra_tear_down_cpu)(void);
 int (*tegra_sleep_core_finish)(unsigned long v2p);
 
-
 bool tegra_is_dpd_mode = false;
-
-static bool suspend_in_progress;
-
-bool tegra_suspend_in_progress(void)
-{
-	smp_rmb();
-
-	return suspend_in_progress;
-}
 
 bool tegra_dvfs_is_dfll_bypass(void)
 {
@@ -728,8 +718,6 @@ int tegra_suspend_dram(enum tegra_suspend_mode mode, unsigned int flags)
 
 	local_fiq_enable();
 
-	suspend_in_progress = false;
-
 	tegra_common_resume();
 
 	/* turn on VDE partition in LP1 */
@@ -755,72 +743,6 @@ static int tegra_suspend_valid(suspend_state_t state)
 	return valid;
 }
 
-static int tegra_suspend_prepare_late(void)
-{
-	if ((current_suspend_mode == TEGRA_SUSPEND_LP0) ||
-			(current_suspend_mode == TEGRA_SUSPEND_LP1))
-		tegra_suspend_check_pwr_stats();
-
-	return 0;
-}
-
-/*
- * Clear the wake status on suspend prepare. If we're starting to suspend,
- * the previous wake reason can be misleading.
- */
-static int pm_suspend_clear_status(struct notifier_block *nb,
-						unsigned long event, void *data)
-{
-	u32 temp;
-	if (event == PM_SUSPEND_PREPARE) {
-		temp = readl(pmc + PMC_WAKE_STATUS);
-		if (temp)
-			pmc_32kwritel(temp, PMC_WAKE_STATUS);
-#ifndef CONFIG_ARCH_TEGRA_2x_SOC
-		temp = readl(pmc + PMC_WAKE2_STATUS);
-		if (temp)
-			pmc_32kwritel(temp, PMC_WAKE2_STATUS);
-#endif
-	}
-	return NOTIFY_OK;
-}
-
-/*
- * LP0 WAR: Bring all CPUs online before LP0 so that they can be put into C7 on
- * subsequent __cpu_downs otherwise we end up hanging the system by leaving a
- * core in C6 and requesting LP0 from CPU0
- */
-static int __cpuinit pm_suspend_notifier(struct notifier_block *nb,
-						unsigned long event, void *data)
-{
-	int cpu, ret;
-
-	if (event != PM_SUSPEND_PREPARE)
-		return NOTIFY_OK;
-
-	suspend_in_progress = true;
-
-	dsb();
-
-	for_each_present_cpu(cpu) {
-		if (!cpu)
-			continue;
-		ret = cpu_up(cpu);
-
-		/*
-		 * Error in getting CPU out of C6. Let -EINVAL through as CPU
-		 * could have come online
-		 */
-		if (ret && ret != -EINVAL) {
-			pr_err("%s: Couldn't bring up CPU%d on LP0 entry: %d\n",
-					__func__, cpu, ret);
-			return NOTIFY_BAD;
-		}
-	}
-
-	return NOTIFY_OK;
-}
-
 static void tegra_suspend_finish(void)
 {
 	if (pdata && pdata->cpu_resume_boost) {
@@ -831,7 +753,6 @@ static void tegra_suspend_finish(void)
 }
 
 static const struct platform_suspend_ops tegra_suspend_ops = {
-	.prepare_late = tegra_suspend_prepare_late,
 	.valid		= tegra_suspend_valid,
 	.finish		= tegra_suspend_finish,
 	.enter		= tegra_suspend_enter,
