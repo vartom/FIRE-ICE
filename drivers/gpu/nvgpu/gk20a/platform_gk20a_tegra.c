@@ -469,6 +469,12 @@ struct gk20a_platform t132_gk20a_tegra_platform = {
 	.railgate_delay		= 500,
 	.clockgate_delay	= 50,
 	.can_railgate		= true,
+	.enable_slcg            = true,
+	.enable_blcg            = true,
+	.enable_elcg            = true,
+	.enable_elpg            = true,
+	.enable_aelpg           = true,
+
 
 	.probe = gk20a_tegra_probe,
 	.late_probe = gk20a_tegra_late_probe,
@@ -497,6 +503,11 @@ struct gk20a_platform gk20a_tegra_platform = {
 	.railgate_delay		= 500,
 	.clockgate_delay	= 50,
 	.can_railgate		= true,
+	.enable_slcg            = true,
+	.enable_blcg            = true,
+	.enable_elcg            = true,
+	.enable_elpg            = true,
+	.enable_aelpg           = true,
 
 	.probe = gk20a_tegra_probe,
 	.late_probe = gk20a_tegra_late_probe,
@@ -524,6 +535,13 @@ struct gk20a_platform gm20b_tegra_platform = {
 	/* power management configuration */
 	.railgate_delay		= 500,
 	.clockgate_delay	= 50,
+	/* Disable all power features for gm20b */
+	.can_railgate           = false,
+	.enable_slcg            = false,
+	.enable_blcg            = false,
+	.enable_elcg            = false,
+	.enable_elpg            = false,
+	.enable_aelpg           = false,
 
 	.probe = gk20a_tegra_probe,
 	.late_probe = gk20a_tegra_late_probe,
