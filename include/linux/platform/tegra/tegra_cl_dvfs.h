@@ -48,14 +48,14 @@ enum tegra_cl_dvfs_pwm_bus {
 #define TEGRA_CL_DVFS_DYN_OUTPUT_CFG		(0x1UL << 1)
 /* monitor data new synchronization can not be used */
 #define TEGRA_CL_DVFS_DATA_NEW_NO_USE		(0x1UL << 2)
+/* set if control settings are overridden when CPU is idle */
+#define TEGRA_CL_DVFS_HAS_IDLE_OVERRIDE		(0x1UL << 3)
 /* set if calibration should be deferred for voltage matching force value */
 #define TEGRA_CL_DVFS_DEFER_FORCE_CALIBRATE	(0x1UL << 4)
 /* set if request scale is applied in open loop (not set: enforce 1:1 scale) */
 #define TEGRA_CL_DVFS_SCALE_IN_OPEN_LOOP	(0x1UL << 5)
 /* set if min output is forced during calibration */
 #define TEGRA_CL_DVFS_CALIBRATE_FORCE_VMIN	(0x1UL << 6)
-
-
 
 struct tegra_cl_dvfs_cfg_param {
 	unsigned long	sample_rate;
