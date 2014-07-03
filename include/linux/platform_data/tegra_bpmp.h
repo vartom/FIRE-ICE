@@ -54,6 +54,8 @@ typedef void (*bpmp_mrq_handler)(int mrq, void *data, int ch);
 
 #ifdef CONFIG_TEGRA_BPMP
 void tegra_bpmp_init_early(void);
+void tegra_bpmp_sclk_skip_set_rate(unsigned long input_rate,
+		unsigned long rate);
 void tegra_bpmp_get_smmu_data(phys_addr_t *start, size_t *size);
 int tegra_bpmp_do_idle(int cpu, int ccxtl, int scx);
 int tegra_bpmp_tolerate_idle(int cpu, int ccxtl);
@@ -70,6 +72,8 @@ void tegra_bpmp_mail_return(int ch, int code, int v);
 void tegra_bpmp_mail_return_data(int ch, int code, void *data, int sz);
 #else
 static inline void tegra_bpmp_init_early(void) {}
+static inline void tegra_bpmp_sclk_skip_set_rate(unsigned long input_rate,
+		unsigned long rate) {}
 static inline void tegra_bpmp_get_smmu_data(phys_addr_t *start, size_t *size) {}
 static inline int tegra_bpmp_do_idle(int cpu, int ccxtl, int scx)
 { return -ENODEV; }
