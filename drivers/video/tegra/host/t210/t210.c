@@ -98,7 +98,6 @@ static struct host1x_device_info host1x04_info = {
 	.nb_channels	= T124_NVHOST_NUMCHANNELS,
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
-	.nb_bases	= NV_HOST1X_SYNCPT_NB_BASES,
 	.syncpt_names	= s_syncpt_names,
 	.client_managed	= NVSYNCPTS_CLIENT_MANAGED_T210,
 };
