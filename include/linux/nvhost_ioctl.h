@@ -115,6 +115,7 @@ struct nvhost_fence {
 enum nvhost_clk_attr {
 	NVHOST_CLOCK = 0,
 	NVHOST_BW,
+	NVHOST_PIXELRATE,
 };
 
 /*
