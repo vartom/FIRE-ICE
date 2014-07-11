@@ -6,12 +6,22 @@ config TEGRA_GRHOST
 	  Driver for the Tegra graphics host hardware.
 
 config TEGRA_GRHOST_VI
+	depends on TEGRA_GRHOST
 	tristate "Tegra video input host1x client driver"
-	default y if TEGRA_GRHOST
+	default y
 	help
 	  Driver for the Tegra video input hardware.
 	  To compile this driver as a module, choose M here:
 	  the  module will be called nvhost-vi.
+
+config TEGRA_GRHOST_ISP
+	depends on TEGRA_GRHOST
+	tristate "Tegra image processing pipeline support"
+	default y
+	help
+	  Driver for the Tegra image processing pipeline (ISP)
+	  To compile this driver as a module, choose M here:
+	  the  module will be called nvhost-isp.
 
 config TEGRA_GRHOST_DEFAULT_TIMEOUT
 	depends on TEGRA_GRHOST

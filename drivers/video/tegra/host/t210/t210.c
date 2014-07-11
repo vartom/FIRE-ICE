@@ -109,6 +109,7 @@ struct nvhost_device_data t21_host1x_info = {
 	.private_data	= &host1x04_info,
 };
 
+#ifdef CONFIG_TEGRA_GRHOST_ISP
 struct nvhost_device_data t21_isp_info = {
 	.syncpts = NV_ISP_0_SYNCPTS,
 	.modulemutexes = {NVMODMUTEX_ISP_0},
@@ -119,6 +120,54 @@ struct nvhost_device_data t21_isp_info = {
 	NVHOST_DEFAULT_CLOCKGATE_DELAY,
 	.clocks        = {{ "isp", UINT_MAX, 0, TEGRA_MC_CLIENT_ISP }},
 	.moduleid      = NVHOST_MODULE_ISP,
+	.ctrl_ops      = &tegra_isp_ctrl_ops,
+	.num_channels  = 1,
+	.bond_out_id   = BOND_OUT_ISP,
+};
+#endif
+
+#if defined(CONFIG_TEGRA_GRHOST_VI) || defined(CONFIG_TEGRA_GRHOST_VI_MODULE)
+#ifdef CONFIG_VI_ONE_DEVICE
+struct nvhost_device_data t21_vi_info = {
+	.exclusive     = true,
+	.class           = NV_VIDEO_STREAMING_VI_CLASS_ID,
+	/* HACK: Mark as keepalive until 1188795 is fixed */
+	.keepalive = true,
+	NVHOST_MODULE_NO_POWERGATE_IDS,
+	NVHOST_DEFAULT_CLOCKGATE_DELAY,
+	.moduleid      = NVHOST_MODULE_VI,
+	.clocks = {
+		{"vi", UINT_MAX},
+		{"csi", 0},
+		{"cilab", 102000000},
+		{"cilcd", 102000000},
+		{"cile", 102000000} },
+	.ctrl_ops         = &tegra_vi_ctrl_ops,
+	.num_channels  = 4,
+	.bond_out_id   = BOND_OUT_VI,
+};
+#else
+struct nvhost_device_data t21_vib_info = {
+	.modulemutexes = {NVMODMUTEX_VI_1},
+	.class           = NV_VIDEO_STREAMING_VI_CLASS_ID,
+	.exclusive     = true,
+	/* HACK: Mark as keepalive until 1188795 is fixed */
+	.keepalive = true,
+	.clocks		= {{"vi", UINT_MAX}, {"csi", UINT_MAX}, {} },
+	NVHOST_MODULE_NO_POWERGATE_IDS,
+	NVHOST_DEFAULT_CLOCKGATE_DELAY,
+	.moduleid      = NVHOST_MODULE_VI,
+	.ctrl_ops         = &tegra_vi_ctrl_ops,
+	.num_channels  = 1,
+	.bond_out_id   = BOND_OUT_VI,
+};
+
+static struct platform_device tegra_vi01b_device = {
+	.name		= "vi",
+	.id		= 1, /* .1 on the dev node */
+	.dev		= {
+		.platform_data = &t21_vib_info,
+	},
 };
 
 struct nvhost_device_data t21_vi_info = {
@@ -137,6 +186,9 @@ struct nvhost_device_data t21_vi_info = {
 		{"cilab", 102000000} },
 	.ctrl_ops         = &tegra_vi_ctrl_ops,
 };
+#endif
+
+#endif
 
 struct nvhost_device_data t21_msenc_info = {
 	.version       = NVHOST_ENCODE_MSENC_VER(5, 0),
@@ -216,39 +268,6 @@ struct nvhost_device_data t21_vic_info = {
 };
 #endif
 
-<<<<<<< HEAD
-struct nvhost_device_data tegra_gm20b_info = {
-	.syncpts		= {NVSYNCPT_GK20A_BASE},
-	.syncpt_base		= NVSYNCPT_GK20A_BASE,
-	.class			= NV_GRAPHICS_GPU_CLASS_ID,
-	.clocks			= { {} },
-	.powergate_ids		= { TEGRA_POWERGATE_GPU, -1 },
-	NVHOST_DEFAULT_CLOCKGATE_DELAY,
-	.powergate_delay	= 500,
-	.can_powergate		= false,
-	.alloc_hwctx_handler	= nvhost_gk20a_alloc_hwctx_handler,
-	.ctrl_ops		= &tegra_gk20a_ctrl_ops,
-	.dbg_ops                = &tegra_gk20a_dbg_gpu_ops,
-	.prof_ops                = &tegra_gk20a_prof_gpu_ops,
-	.as_ops			= &tegra_gk20a_as_ops,
-	.moduleid		= NVHOST_MODULE_GPU,
-	.init			= nvhost_gk20a_init,
-	.deinit			= nvhost_gk20a_deinit,
-	.alloc_hwctx_handler	= nvhost_gk20a_alloc_hwctx_handler,
-	.prepare_poweroff	= nvhost_gk20a_prepare_poweroff,
-	.finalize_poweron	= nvhost_gk20a_finalize_poweron,
-#ifdef CONFIG_TEGRA_GK20A_DEVFREQ
-	.busy			= nvhost_gk20a_scale_notify_busy,
-	.idle			= nvhost_gk20a_scale_notify_idle,
-	.scaling_init		= nvhost_gk20a_scale_init,
-	.scaling_deinit		= nvhost_gk20a_scale_deinit,
-	.suspend_ndev		= nvhost_scale3d_suspend,
-	.devfreq_governor	= "nvhost_podgov",
-	.scaling_post_cb	= nvhost_gk20a_scale_callback,
-	.gpu_edp_device		= true,
-#endif
-};
-=======
 #include "host1x/host1x_channel.c"
 
 static void t210_set_nvhost_chanops(struct nvhost_channel *ch)
@@ -317,4 +336,3 @@ err:
 	op->remove_support = 0;
 	return err;
 }
->>>>>>> 695b129... video: tegra: host: Get chip init from pdata
