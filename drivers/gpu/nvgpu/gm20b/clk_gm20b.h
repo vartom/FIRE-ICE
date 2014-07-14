@@ -1,5 +1,5 @@
 /*
- * GM20B Clocks
+ * GM20B Graphics
  *
  * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -12,23 +12,15 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#ifndef _NVHOST_CLK_GM20B_H_
+#define _NVHOST_CLK_GM20B_H_
 
-#include <linux/clk.h>
-#include <linux/delay.h>	/* for mdelay */
-#include <linux/module.h>
-#include <linux/debugfs.h>
-#include <linux/clk/tegra.h>
-#include <mach/thermal.h>
+#include <linux/mutex.h>
 
-#include "gk20a/gk20a.h"
-#include "gk20a/hw_trim_gk20a.h"
-#include "gk20a/hw_timer_gk20a.h"
+void gm20b_init_clk_ops(struct gpu_ops *gops);
 
-void gm20b_init_clk_ops(struct gpu_ops *gops)
-{
-	gops->clk.init_clk_support = gk20a_init_clk_support;
-}
-
+#endif /* _NVHOST_CLK_GM20B_H_ */
