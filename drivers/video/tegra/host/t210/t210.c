@@ -98,8 +98,7 @@ static struct host1x_device_info host1x04_info = {
 	.nb_channels	= T124_NVHOST_NUMCHANNELS,
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
-	.syncpt_names	= s_syncpt_names,
-	.client_managed	= NVSYNCPTS_CLIENT_MANAGED_T210,
+	.initialize_chip_support = nvhost_init_t210_support,
 };
 
 struct nvhost_device_data t21_host1x_info = {
@@ -215,6 +214,7 @@ struct nvhost_device_data t21_vic_info = {
 };
 #endif
 
+<<<<<<< HEAD
 struct nvhost_device_data tegra_gm20b_info = {
 	.syncpts		= {NVSYNCPT_GK20A_BASE},
 	.syncpt_base		= NVSYNCPT_GK20A_BASE,
@@ -246,3 +246,74 @@ struct nvhost_device_data tegra_gm20b_info = {
 	.gpu_edp_device		= true,
 #endif
 };
+=======
+#include "host1x/host1x_channel.c"
+
+static void t210_set_nvhost_chanops(struct nvhost_channel *ch)
+{
+	if (ch)
+		ch->ops = host1x_channel_ops;
+}
+
+int nvhost_init_t210_channel_support(struct nvhost_master *host,
+       struct nvhost_chip_support *op)
+{
+	op->nvhost_dev.set_nvhost_chanops = t210_set_nvhost_chanops;
+
+	return 0;
+}
+
+static void t210_remove_support(struct nvhost_chip_support *op)
+{
+	kfree(op->priv);
+	op->priv = 0;
+}
+
+#include "host1x/host1x_cdma.c"
+#include "host1x/host1x_syncpt.c"
+#include "host1x/host1x_intr.c"
+#include "host1x/host1x_actmon_t124.c"
+#include "host1x/host1x_debug.c"
+
+int nvhost_init_t210_support(struct nvhost_master *host,
+       struct nvhost_chip_support *op)
+{
+	int err;
+	struct t124 *t210 = 0;
+
+	op->soc_name = "tegra21x";
+
+	/* don't worry about cleaning up on failure... "remove" does it. */
+	err = nvhost_init_t210_channel_support(host, op);
+	if (err)
+		return err;
+
+	op->cdma = host1x_cdma_ops;
+	op->push_buffer = host1x_pushbuffer_ops;
+	op->debug = host1x_debug_ops;
+
+	host->sync_aperture = host->aperture + HOST1X_CHANNEL_SYNC_REG_BASE;
+	op->syncpt = host1x_syncpt_ops;
+	op->intr = host1x_intr_ops;
+	op->actmon = host1x_actmon_ops;
+
+	t210 = kzalloc(sizeof(struct t124), GFP_KERNEL);
+	if (!t210) {
+		err = -ENOMEM;
+		goto err;
+	}
+
+	t210->host = host;
+	op->priv = t210;
+	op->remove_support = t210_remove_support;
+
+	return 0;
+
+err:
+	kfree(t210);
+
+	op->priv = 0;
+	op->remove_support = 0;
+	return err;
+}
+>>>>>>> 695b129... video: tegra: host: Get chip init from pdata
