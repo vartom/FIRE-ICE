@@ -33,7 +33,6 @@ obj-$(CONFIG_ARCH_TEGRA_HAS_CL_DVFS) += tegra_cl_dvfs.o
 endif
 
 
-
 obj-$(CONFIG_CPU_FREQ)                  += cpu-tegra.o
 obj-y += flowctrl.o
 obj-y += pm-t3.o
@@ -41,6 +40,10 @@ obj-$(CONFIG_TEGRA_CLUSTER_CONTROL) += sysfs-cluster.o
 obj-$(CONFIG_TEGRA_HMP_CLUSTER_CONTROL) += sysfs-cluster.o
 obj-y += reset.o
 
+ifeq ($(CONFIG_TEGRA_THERMAL_THROTTLE),y)
+ccflags-y += -I$(srctree)/arch/arm/mach-tegra
+obj-$(CONFIG_ARCH_TEGRA_12x_SOC)        += tegra_throttle.o
+endif
 
 ifneq ($(CONFIG_ARM64),)
 
@@ -79,9 +82,6 @@ ifeq ($(CONFIG_TEGRA_AUTO_HOTPLUG),y)
 ifeq ($(CONFIG_TEGRA_CPUQUIET),y)
 obj-$(CONFIG_ARCH_TEGRA_13x_SOC)         += cpuquiet.o
 endif
-endif
-ifeq ($(CONFIG_TEGRA_THERMAL_THROTTLE),y)
-obj-$(CONFIG_ARCH_TEGRA_13x_SOC)        += tegra3_throttle.o
 endif
 
 obj-y += latency_allowance.o
