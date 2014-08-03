@@ -628,12 +628,21 @@ static const int *dvfs_get_millivolts_dfll(struct dvfs *d)
 	return d->dfll_millivolts;
 }
 
+const int *dvfs_get_millivolts_pll(struct dvfs *d)
+{
+	if (d->therm_dvfs) {
+		int therm_idx = d->dvfs_rail->therm_scale_idx;
+		return d->millivolts + therm_idx * MAX_DVFS_FREQS;
+	}
+	return d->millivolts;
+}
+
 static inline const int *dvfs_get_millivolts(struct dvfs *d, unsigned long rate)
 {
 	if (tegra_dvfs_is_dfll_scale(d, rate))
 		return dvfs_get_millivolts_dfll(d);
 
-	return tegra_dvfs_get_millivolts_pll(d);
+	return dvfs_get_millivolts_pll(d);
 }
 
 static int
@@ -911,7 +920,7 @@ int tegra_dvfs_predict_millivolts(struct clk *c, unsigned long rate)
 	mutex_lock(&dvfs_lock);
 	millivolts = tegra_dvfs_is_dfll_range(c->dvfs, rate) ?
 		dvfs_get_millivolts_dfll(c->dvfs) :
-		tegra_dvfs_get_millivolts_pll(c->dvfs);
+		dvfs_get_millivolts_pll(c->dvfs);
 	mv = predict_millivolts(c, millivolts, rate);
 	mutex_unlock(&dvfs_lock);
 
@@ -978,15 +987,6 @@ static int dvfs_predict_peak_millivolts(struct clk *c, unsigned long rate)
 	if (dfll_range && c->dvfs->dvfs_rail->therm_mv_dfll_floors)
 		mv = max(mv, c->dvfs->dvfs_rail->therm_mv_dfll_floors[0]);
 	return mv;
-}
-
-const int *tegra_dvfs_get_millivolts_pll(struct dvfs *d)
-{
-	if (d->therm_dvfs) {
-		int therm_idx = d->dvfs_rail->therm_scale_idx;
-		return d->millivolts + therm_idx * MAX_DVFS_FREQS;
-	}
-	return d->millivolts;
 }
 
 int tegra_dvfs_predict_peak_millivolts(struct clk *c, unsigned long rate)
@@ -2720,7 +2720,7 @@ static int dvfs_table_show(struct seq_file *s, void *data)
 	list_for_each_entry(rail, &dvfs_rail_list, node) {
 		list_for_each_entry(d, &rail->dvfs, reg_node) {
 			bool mv_done = false;
-			v_pll = tegra_dvfs_get_millivolts_pll(d);
+			v_pll = dvfs_get_millivolts_pll(d);
 			v_dfll = dvfs_get_millivolts_dfll(d);
 
 			if (v_pll && (last_v_pll != v_pll)) {
