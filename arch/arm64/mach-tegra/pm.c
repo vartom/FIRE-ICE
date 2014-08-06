@@ -743,6 +743,15 @@ static int tegra_suspend_valid(suspend_state_t state)
 	return valid;
 }
 
+static int tegra_suspend_prepare_late(void)
+{
+	if ((current_suspend_mode == TEGRA_SUSPEND_LP0) ||
+			(current_suspend_mode == TEGRA_SUSPEND_LP1))
+		tegra_suspend_check_pwr_stats();
+
+	return 0;
+}
+
 static void tegra_suspend_finish(void)
 {
 	if (pdata && pdata->cpu_resume_boost) {
