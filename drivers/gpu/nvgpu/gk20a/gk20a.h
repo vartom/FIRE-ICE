@@ -289,6 +289,7 @@ struct gk20a {
 	bool aelpg_enabled;
 	bool forced_idle;
 	bool forced_reset;
+	bool allow_all;
 
 	u32 emc3d_ratio;
 
