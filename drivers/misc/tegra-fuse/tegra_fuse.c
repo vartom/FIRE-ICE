@@ -328,6 +328,17 @@ module_param_cb(tegra_gpu_num_alus_per_pixel_pipe,
 		&tegra_gpu_num_alus_per_pixel_pipe_ops,
 		&tegra_gpu_num_alus_per_pixel_pipe, 0444);
 
+bool tegra_fuse_can_use_na_gpcpll(void)
+{
+#if defined(CONFIG_ARCH_TEGRA_21x_SOC)
+	/* on T210 NA mode can be used if id >= 1 */
+	return tegra_gpu_speedo_id();
+#else
+	return false;
+#endif
+}
+EXPORT_SYMBOL(tegra_fuse_can_use_na_gpcpll);
+
 struct chip_revision {
 	enum tegra_chipid	chipid;
 	unsigned int		major;

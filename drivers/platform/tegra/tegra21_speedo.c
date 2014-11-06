@@ -92,13 +92,13 @@ static const u32 core_process_speedos[][CORE_PROCESS_CORNERS_NUM] = {
 	{0,	UINT_MAX}, /* [1]: threshold_index 0 */
 };
 
-static void rev_sku_to_speedo_ids(int rev, int sku)
+static void rev_sku_to_speedo_ids(int rev, int sku, int speedo_rev)
 {
 	switch (sku) {
 	case 0x00: /* Engg sku */
 		cpu_speedo_id = 0;
 		soc_speedo_id = 0;
-		gpu_speedo_id = 0;
+		gpu_speedo_id = speedo_rev >= 2 ? 1 : 0;
 		threshold_index = 0;
 		break;
 	default:
@@ -185,7 +185,7 @@ void tegra_init_speedo_data(void)
 	}
 
 	tegra_sku_id = tegra_get_sku_id();
-	rev_sku_to_speedo_ids(tegra_revision, tegra_sku_id);
+	rev_sku_to_speedo_ids(tegra_revision, tegra_sku_id, speedo_rev);
 
 	for (i = 0; i < GPU_PROCESS_CORNERS_NUM; i++) {
 		if (gpu_speedo_value <

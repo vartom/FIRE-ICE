@@ -81,4 +81,6 @@ int tegra_fuse_calib_base_get_cp(u32 *base_cp, s32 *shifted_cp);
 int tegra_fuse_calib_base_get_ft(u32 *base_ft, s32 *shifted_ft);
 #endif
 
+bool tegra_fuse_can_use_na_gpcpll(void);
+
 #endif /* TEGRA_FUSE_H */
