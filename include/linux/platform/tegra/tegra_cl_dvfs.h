@@ -48,6 +48,8 @@ enum tegra_cl_dvfs_pwm_bus {
 #define TEGRA_CL_DVFS_DYN_OUTPUT_CFG		(0x1UL << 1)
 /* monitor data new synchronization can not be used */
 #define TEGRA_CL_DVFS_DATA_NEW_NO_USE		(0x1UL << 2)
+/* set if calibration should be deferred for voltage matching force value */
+#define TEGRA_CL_DVFS_DEFER_FORCE_CALIBRATE	(0x1UL << 4)
 
 struct tegra_cl_dvfs_cfg_param {
 	unsigned long	sample_rate;
