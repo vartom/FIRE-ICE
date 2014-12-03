@@ -337,6 +337,15 @@ static inline void invalidate_request(struct tegra_cl_dvfs *cld)
 	cl_dvfs_wmb(cld);
 }
 
+static inline void set_request_scale(struct tegra_cl_dvfs *cld, u8 scale)
+{
+	u32 val = cl_dvfs_readl(cld, CL_DVFS_FREQ_REQ);
+	val &= ~CL_DVFS_FREQ_REQ_SCALE_MASK;
+	val |= scale << CL_DVFS_FREQ_REQ_SCALE_SHIFT;
+	cl_dvfs_writel(cld, val, CL_DVFS_FREQ_REQ);
+	cl_dvfs_wmb(cld);
+}
+
 static inline u32 output_force_set_val(struct tegra_cl_dvfs *cld, u8 out_val)
 {
 	u32 val = cl_dvfs_readl(cld, CL_DVFS_OUTPUT_FORCE);
@@ -875,7 +884,8 @@ static void set_ol_config(struct tegra_cl_dvfs *cld)
 
 	/* 1:1 scaling in open loop */
 	val = cl_dvfs_readl(cld, CL_DVFS_FREQ_REQ);
-	val |= (SCALE_MAX - 1) << CL_DVFS_FREQ_REQ_SCALE_SHIFT;
+	if (!(cld->p_data->flags & TEGRA_CL_DVFS_SCALE_IN_OPEN_LOOP))
+		val |= (SCALE_MAX - 1) << CL_DVFS_FREQ_REQ_SCALE_SHIFT;
 	val &= ~CL_DVFS_FREQ_REQ_FORCE_ENABLE;
 	cl_dvfs_writel(cld, val, CL_DVFS_FREQ_REQ);
 }
@@ -2726,6 +2736,8 @@ int tegra_cl_dvfs_enable(struct tegra_cl_dvfs *cld)
 		return 0;
 
 	cl_dvfs_enable_clocks(cld);
+	if (cld->p_data->flags & TEGRA_CL_DVFS_SCALE_IN_OPEN_LOOP)
+		set_request_scale(cld, cld->last_req.scale);
 	set_mode(cld, TEGRA_CL_DVFS_OPEN_LOOP);
 	udelay(1);
 	return 0;
@@ -2877,6 +2889,9 @@ int tegra_cl_dvfs_request_rate(struct tegra_cl_dvfs *cld, unsigned long rate)
 		set_request(cld, &cld->last_req);
 		if (dvco_min_crossed || dvco_min_updated)
 			calibration_timer_update(cld);
+	} else if ((cld->mode == TEGRA_CL_DVFS_OPEN_LOOP) &&
+		   (cld->p_data->flags & TEGRA_CL_DVFS_SCALE_IN_OPEN_LOOP)) {
+		set_request_scale(cld, req.scale);
 	}
 	return 0;
 
