@@ -2165,7 +2165,7 @@ static int build_direct_vdd_map(struct tegra_cl_dvfs_platform_data *p_data,
 }
 
 /* cl_dvfs comaptibility tables */
-struct tegra_cl_dvfs_soc_match_data t132_data = {
+static struct tegra_cl_dvfs_soc_match_data t132_data = {
 	.flags = TEGRA_CL_DVFS_DEFER_FORCE_CALIBRATE,
 };
 
