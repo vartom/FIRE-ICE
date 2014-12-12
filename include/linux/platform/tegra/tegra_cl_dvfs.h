@@ -130,7 +130,6 @@ int tegra_cl_dvfs_lock(struct tegra_cl_dvfs *cld);
 int tegra_cl_dvfs_unlock(struct tegra_cl_dvfs *cld);
 int tegra_cl_dvfs_request_rate(struct tegra_cl_dvfs *cld, unsigned long rate);
 unsigned long tegra_cl_dvfs_request_get(struct tegra_cl_dvfs *cld);
-
 #else
 static inline int tegra_init_cl_dvfs(void)
 { return -ENOSYS; }
@@ -151,6 +150,9 @@ static inline int tegra_cl_dvfs_request_rate(
 	struct tegra_cl_dvfs *cld, unsigned long rate)
 { return -ENOSYS; }
 static inline unsigned long tegra_cl_dvfs_request_get(struct tegra_cl_dvfs *cld)
+{ return 0; }
+static inline int tegra_cl_dvfs_clamp_at_vmin(struct tegra_cl_dvfs *cld,
+	bool clamp)
 { return 0; }
 #endif
 
