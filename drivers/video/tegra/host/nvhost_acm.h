@@ -73,4 +73,13 @@ int nvhost_module_disable_clk(struct device *dev);
 int nvhost_module_prepare_poweroff(struct device *dev);
 int nvhost_module_finalize_poweron(struct device *dev);
 
+
+#ifdef CONFIG_PM_GENERIC_DOMAINS_OF
+int nvhost_domain_init(struct of_device_id *matches);
+#else
+static inline int nvhost_domain_init(struct of_device_id *matches)
+{
+	return 0;
+}
+#endif
 #endif
