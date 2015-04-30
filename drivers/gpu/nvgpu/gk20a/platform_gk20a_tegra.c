@@ -59,7 +59,7 @@ static void gk20a_tegra_secure_page_destroy(struct platform_device *pdev,
 			secure_buffer->iova, &secure_buffer->attrs);
 }
 
-static int gk20a_tegra_secure_page_alloc(struct platform_device *pdev)
+int gk20a_tegra_secure_page_alloc(struct platform_device *pdev)
 {
 	struct gk20a_platform *platform = platform_get_drvdata(pdev);
 	struct secure_page_buffer *secure_buffer = &platform->secure_buffer;
@@ -95,9 +95,9 @@ static void gk20a_tegra_secure_destroy(struct gk20a *g,
 	}
 }
 
-static int gk20a_tegra_secure_alloc(struct platform_device *pdev,
-				    struct gr_ctx_buffer_desc *desc,
-				    size_t size)
+int gk20a_tegra_secure_alloc(struct platform_device *pdev,
+			     struct gr_ctx_buffer_desc *desc,
+			     size_t size)
 {
 	struct gk20a_platform *platform = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
