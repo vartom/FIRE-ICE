@@ -279,8 +279,6 @@ static int wifi_plat_dev_drv_probe(struct platform_device *pdev)
 	}
 
 
-	wifi_ctrl->sysedpc = sysedp_create_consumer("wifi", "wifi");
-
 	wifi_plat_dev_probe_ret = dhd_wifi_platform_load();
 	return wifi_plat_dev_probe_ret;
 }
