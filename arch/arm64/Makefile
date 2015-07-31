@@ -37,9 +37,12 @@ O2_FLAGS := \
 	--param l1-cache-size=192 \
 	--param l2-cache-size=2048 \
 
-CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant -march=armv8-a+crypto -mtune=cortex-a57 $(O1_FLAGS)
+O3_FLAGS := \
+	-mcpu=cortex-a57 \
+
+CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
 KBUILD_CFLAGS	+= -mgeneral-regs-only $(O1_FLAGS)
-KBUILD_CFLAGS	+= -fno-pic $(O2_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic $(O2_FLAGS) $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
