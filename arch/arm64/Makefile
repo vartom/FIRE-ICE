@@ -72,8 +72,6 @@ core-y		+= arch/arm64/kernel/ arch/arm64/mm/
 
 core-y          += arch/arm64/mach-tegra/
 
-core-$(CONFIG_INTELLI_PLUG)	+= arch/arm64/hotplug/
-
 core-$(CONFIG_CRYPTO) += arch/arm64/crypto/
 libs-y		:= arch/arm64/lib/ $(libs-y)
 libs-y		+= $(LIBGCC)
