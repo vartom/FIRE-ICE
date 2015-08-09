@@ -24,21 +24,20 @@ O1_FLAGS := \
 	-floop-block \
 	-floop-flatten \
 	-floop-strip-mine \
-	-ftree-loop-linear \
 	-floop-interchange \
 	-fgraphite-identity \
 	-floop-nest-optimize \
 	-floop-unroll-and-jam \
 	-floop-parallelize-all \
-	-ftree-parallelize-loops=2 \
 
 O2_FLAGS := \
 	-O3 \
-	--param l1-cache-size=192 \
-	--param l2-cache-size=2048 \
 
 O3_FLAGS := \
 	-mcpu=cortex-a57 \
+	--param l1-cache-size=192 \
+	--param l2-cache-size=2048 \
+	--param l1-cache-line-size=192000 \
 
 CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
 KBUILD_CFLAGS	+= -mgeneral-regs-only $(O1_FLAGS)
