@@ -20,26 +20,38 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
+	-g0 \
+	-DNDEBUG \
+	-fgcse-sm \
+	-fipa-sra \
 	-fgraphite \
+	-fgcse-las \
 	-floop-block \
 	-floop-flatten \
+	-fmodulo-sched \
 	-floop-strip-mine \
 	-floop-interchange \
 	-fgraphite-identity \
+	-fgcse-after-reload \
+	-fira-loop-pressure \
 	-floop-nest-optimize \
+	-fira-hoist-pressure \
 	-floop-unroll-and-jam \
 	-floop-parallelize-all \
+	-fmodulo-sched-allow-regmoves \
 
 O2_FLAGS := \
 	-O3 \
 
 O3_FLAGS := \
+	-mabi=lp64
 	-mcpu=cortex-a57 \
+	-fsanitize=thread \
 	--param l1-cache-size=192 \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192000 \
 
-CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
+CFLAGS_KERNEL   += -fgcse-lm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
 KBUILD_CFLAGS	+= -mgeneral-regs-only $(O1_FLAGS)
 KBUILD_CFLAGS	+= -fno-pic $(O2_FLAGS) $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
