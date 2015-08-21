@@ -687,18 +687,6 @@ extern int dhd_dev_set_whitelist_ssid(struct net_device *dev, wl_ssid_whitelist_
     uint32 len, uint32 flush);
 #endif /* GSCAN_SUPPORT */
 
-#ifdef GSCAN_SUPPORT
-extern int dhd_dev_set_lazy_roam_cfg(struct net_device *dev,
-             wlc_roam_exp_params_t *roam_param);
-extern int dhd_dev_lazy_roam_enable(struct net_device *dev, uint32 enable);
-extern int dhd_dev_set_lazy_roam_bssid_pref(struct net_device *dev,
-       wl_bssid_pref_cfg_t *bssid_pref, uint32 flush);
-extern int dhd_dev_set_blacklist_bssid(struct net_device *dev, maclist_t *blacklist,
-    uint32 len, uint32 flush);
-extern int dhd_dev_set_whitelist_ssid(struct net_device *dev, wl_ssid_whitelist_t *whitelist,
-    uint32 len, uint32 flush);
-#endif /* GSCAN_SUPPORT */
-
 /* OS independent layer functions */
 extern int dhd_os_proto_block(dhd_pub_t * pub);
 extern int dhd_os_proto_unblock(dhd_pub_t * pub);
