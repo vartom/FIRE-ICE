@@ -29,7 +29,6 @@ struct wifi_platform_data {
 	int (*get_mac_addr)(unsigned char *buf);
 	int (*get_wake_irq)(void);
 	void *(*get_country_code)(char *ccode, u32 flags);
-	struct sysedp_consumer *sysedpc;
 #ifdef CONFIG_PARTIALRESUME
 #define WIFI_PR_INIT			0
 #define WIFI_PR_NOTIFY_RESUME		1
@@ -38,6 +37,7 @@ struct wifi_platform_data {
 #define WIFI_PR_WAIT_FOR_READY		4
 	bool (*partial_resume)(int action);
 #endif
+	struct sysedp_consumer *sysedpc;
 };
 
 #endif
