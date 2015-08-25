@@ -21,6 +21,7 @@ KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
 	-g0 \
+	-fweb \
 	-DNDEBUG \
 	-fgcse-sm \
 	-fipa-sra \
