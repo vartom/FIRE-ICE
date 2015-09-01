@@ -45,9 +45,9 @@ O2_FLAGS := \
 	-O3 \
 
 O3_FLAGS := \
-	-mabi=lp64
-	-mcpu=cortex-a57 \
-	-fsanitize=thread \
+	-mabi=lp64 \
+	-mtune=cortex-a57 \
+	-march=armv8-a+crypto \
 	--param l1-cache-size=192 \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192000 \
