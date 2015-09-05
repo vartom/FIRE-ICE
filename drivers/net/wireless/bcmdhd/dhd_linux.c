@@ -835,10 +835,11 @@ static int dhd_sar_callback(struct notifier_block *nfb, unsigned long action, vo
 		 * qtxpower variable allows us to overwrite TX power.
 		 */
 		txpower = *(s32*)data;
-		if (txpower == -1 || txpower > 127)
+		if (txpower == -1 || txpower >= 127)
 			txpower = 127; /* Max val of 127 qdbm */
+		else
+			txpower |= WL_TXPWR_OVERRIDE;
 
-		txpower |= WL_TXPWR_OVERRIDE;
 		txpower = htod32(txpower);
 
 		bcm_mkiovar("qtxpower", (char *)&txpower, 4, iovbuf, sizeof(iovbuf));
@@ -8321,14 +8322,15 @@ dhd_dev_start_mkeep_alive(dhd_pub_t *dhd_pub, u8 mkeep_alive_id, u8 *ip_pkt, u16
 	const char		*str;
 	wl_mkeep_alive_pkt_t mkeep_alive_pkt = {0};
 	wl_mkeep_alive_pkt_t *mkeep_alive_pktp;
-	int				buf_len;
-	int				str_len;
+	int			buf_len;
+	int			str_len;
 	int 			res = BCME_ERROR;
 	int 			len_bytes = 0;
 	int 			i;
 
 	/* ether frame to have both max IP pkt (256 bytes) and ether header */
 	char 			*pmac_frame;
+	char 			*pmac_frame_begin;
 
 	/*
 	 * The mkeep_alive packet is for STA interface only; if the bss is configured as AP,
@@ -8350,6 +8352,7 @@ dhd_dev_start_mkeep_alive(dhd_pub_t *dhd_pub, u8 mkeep_alive_id, u8 *ip_pkt, u16
 		res = BCME_NOMEM;
 		goto exit;
 	}
+	pmac_frame_begin = pmac_frame;
 
 	/*
 	 * Get current mkeep-alive status.
@@ -8432,7 +8435,7 @@ dhd_dev_start_mkeep_alive(dhd_pub_t *dhd_pub, u8 mkeep_alive_id, u8 *ip_pkt, u16
 	 *     = src mac + dst mac + ether type + ip pkt len
 	 */
 	len_bytes = ETHER_ADDR_LEN*2 + ETHERTYPE_LEN + ip_pkt_len;
-	memcpy(mkeep_alive_pktp->data, pmac_frame, len_bytes);
+	memcpy(mkeep_alive_pktp->data, pmac_frame_begin, len_bytes);
 	buf_len += len_bytes;
 	mkeep_alive_pkt.len_bytes = htod16(len_bytes);
 

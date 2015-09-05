@@ -49,6 +49,9 @@
 #include <linux/fcntl.h>
 #include <linux/fs.h>
 
+#if defined(CONFIG_BCMDHD_PCIE) && defined(CONFIG_ARCH_MSM) && defined(CONFIG_64BIT)
+#include <linux/msm_pcie.h>
+#endif
 
 #define BCM_DBG pr_debug
 
@@ -328,15 +331,6 @@ int dhd_wifi_init_gpio(void)
 	else
 		pr_err("%s: gpio_request WL_REG_ON done\n", __func__);
 
-	if (gpio_direction_output(gpio_wl_reg_on, 1))
-		pr_err("%s: WL_REG_ON failed to pull up\n", __func__);
-	else
-		BCM_DBG("%s: WL_REG_ON is pulled up\n", __func__);
-
-	if (gpio_get_value(gpio_wl_reg_on))
-		BCM_DBG("%s: Initial WL_REG_ON: [%d]\n",
-			__func__, gpio_get_value(gpio_wl_reg_on));
-
 	return 0;
 }
 
@@ -368,7 +362,12 @@ static int dhd_wlan_reset(int onoff)
 
 static int dhd_wlan_set_carddetect(int val)
 {
+#if defined(CONFIG_BCMDHD_PCIE) && defined(CONFIG_ARCH_MSM) && defined(CONFIG_64BIT)
+	return msm_pcie_enumerate(1);
+#else
 	return 0;
+#endif /* CONFIG_BCMDHD_PCIE && defined(CONFIG_ARCH_MSM) && defined(CONFIG_64BIT) */
+
 }
 
 /* Customized Locale table : OPTIONAL feature */
@@ -393,6 +392,7 @@ static struct cntry_locales_custom brcm_wlan_translate_custom_table[] = {
 	{"BR", "BR", 4},
 	{"CA", "US", 176},   /* Previousely was CA/31 */
 	{"CH", "CH", 4},
+	{"CN", "CN", 24},
 	{"CY", "CY", 4},
 	{"CZ", "CZ", 4},
 	{"DE", "DE", 7},
@@ -491,6 +491,10 @@ struct cntry_locales_custom brcm_wlan_translate_nodfs_table[] = {
 	{"TW", "TW", 60},
 };
 
+struct cntry_locales_custom brcm_wlan_translate_ap_table[] = {
+	{"JP", "JP", 991},
+};
+
 static void *dhd_wlan_get_country_code(char *ccode, u32 flags)
 {
 	struct cntry_locales_custom *locales;
@@ -499,6 +503,14 @@ static void *dhd_wlan_get_country_code(char *ccode, u32 flags)
 
 	if (!ccode)
 		return NULL;
+
+	if (flags & WLAN_PLAT_AP_FLAG) {
+		locales = brcm_wlan_translate_ap_table;
+		size = ARRAY_SIZE(brcm_wlan_translate_ap_table);
+		for (i = 0; i < size; i++)
+			if (strcmp(ccode, locales[i].iso_abbrev) == 0)
+				return &locales[i];
+	}
 
 	if (flags & WLAN_PLAT_NODFS_FLAG) {
 		locales = brcm_wlan_translate_nodfs_table;
