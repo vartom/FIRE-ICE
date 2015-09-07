@@ -218,3 +218,4 @@ static int __init sched_clock_syscore_init(void)
 	return 0;
 }
 device_initcall(sched_clock_syscore_init);
+
