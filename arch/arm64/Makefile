@@ -19,8 +19,43 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
 KBUILD_DEFCONFIG := defconfig
 
-KBUILD_CFLAGS	+= -mgeneral-regs-only
-KBUILD_CFLAGS	+= -fno-pic
+
+O1_FLAGS := \
+	-g0 \
+	-fweb \
+	-DNDEBUG \
+	-fgcse-sm \
+	-fipa-sra \
+	-fgraphite \
+	-fgcse-las \
+	-floop-block \
+	-floop-flatten \
+	-fmodulo-sched \
+	-floop-strip-mine \
+	-floop-interchange \
+	-fgraphite-identity \
+	-fgcse-after-reload \
+	-fira-loop-pressure \
+	-floop-nest-optimize \
+	-fira-hoist-pressure \
+	-floop-unroll-and-jam \
+	-floop-parallelize-all \
+	-fmodulo-sched-allow-regmoves \
+
+O2_FLAGS := \
+	-O3 \
+
+O3_FLAGS := \
+	-mabi=lp64 \
+	-mtune=cortex-a57 \
+	-march=armv8-a+crypto \
+	--param l1-cache-size=192 \
+	--param l2-cache-size=2048 \
+	--param l1-cache-line-size=192000 \
+
+CFLAGS_KERNEL   += -fgcse-lm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
+KBUILD_CFLAGS	+= -mgeneral-regs-only $(O1_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic $(O2_FLAGS) $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
