@@ -29,14 +29,9 @@ O1_FLAGS := \
 	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
-	-floop-unroll-and-jam \
-	-funsafe-loop-optimizations \
-	-faggressive-loop-optimizations \
 
 O2_FLAGS := \
 	-O3 \
-	-g0 \
-	-DNDEBUG \
 
 O3_FLAGS := \
 	-mabi=lp64 \
@@ -46,17 +41,19 @@ O3_FLAGS := \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192000 \
 
-CFLAGS_KERNEL   += -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O2_FLAGS) $(O3_FLAGS)
-KBUILD_CFLAGS	+= -mgeneral-regs-only $(O1_FLAGS)
-KBUILD_CFLAGS	+= -fno-pic $(O2_FLAGS) $(O3_FLAGS)
+CFLAGS_KERNEL   += -fgcse-lm -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS) $(O3_FLAGS)
+KBUILD_AFLAGS	+= $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
 LD		+= -EB
+LDFLAGS		+= -maarch64linuxb
 else
 KBUILD_CPPFLAGS	+= -mlittle-endian
 AS		+= -EL
 LD		+= -EL
+LDFLAGS		+= -maarch64linux
 endif
 
 # For mach-xxx/mach/{io.h|irqs.h}
