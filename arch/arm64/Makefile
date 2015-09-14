@@ -28,32 +28,27 @@ O1_FLAGS := \
 	-floop-interchange \
 	-fgcse-after-reload \
 	-fgraphite-identity \
-	-floop-nest-optimize \
 
 O2_FLAGS := \
 	-O3 \
 
 O3_FLAGS := \
-	-mabi=lp64 \
 	-mtune=cortex-a57 \
 	-march=armv8-a+crypto \
-	--param l1-cache-size=192 \
+	--param l1-cache-size=64 \
 	--param l2-cache-size=2048 \
-	--param l1-cache-line-size=192000 \
+	--param l1-cache-line-size=192 \
 
 CFLAGS_KERNEL   += -fgcse-lm -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
 KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS) $(O3_FLAGS)
-KBUILD_AFLAGS	+= $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
 LD		+= -EB
-LDFLAGS		+= -maarch64linuxb
 else
 KBUILD_CPPFLAGS	+= -mlittle-endian
 AS		+= -EL
 LD		+= -EL
-LDFLAGS		+= -maarch64linux
 endif
 
 # For mach-xxx/mach/{io.h|irqs.h}
