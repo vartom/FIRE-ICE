@@ -82,7 +82,7 @@ static int f2fs_xattr_generic_get(struct dentry *dentry, const char *name,
 	}
 	if (strcmp(name, "") == 0)
 		return -EINVAL;
-	return f2fs_getxattr(dentry->d_inode, type, name, buffer, size);
+	return f2fs_getxattr(dentry->d_inode, type, name, buffer, size, NULL);
 }
 
 static int f2fs_xattr_generic_set(struct dentry *dentry, const char *name,
@@ -131,7 +131,7 @@ static int f2fs_xattr_advise_get(struct dentry *dentry, const char *name,
 {
 	struct inode *inode = dentry->d_inode;
 
-	if (!name || strcmp(name, "") != 0)
+	if (strcmp(name, "") != 0)
 		return -EINVAL;
 
 	if (buffer)
@@ -151,7 +151,8 @@ static int f2fs_xattr_advise_set(struct dentry *dentry, const char *name,
 	if (value == NULL)
 		return -EINVAL;
 
-	F2FS_I(inode)->i_advise = *(char *)value;
+	F2FS_I(inode)->i_advise |= *(char *)value;
+	mark_inode_dirty(inode);
 	return 0;
 }
 
@@ -398,7 +399,7 @@ static inline int write_all_xattrs(struct inode *inode, __u32 hsize,
 }
 
 int f2fs_getxattr(struct inode *inode, int index, const char *name,
-		void *buffer, size_t buffer_size)
+		void *buffer, size_t buffer_size, struct page *ipage)
 {
 	struct f2fs_xattr_entry *entry;
 	void *base_addr;
@@ -412,7 +413,7 @@ int f2fs_getxattr(struct inode *inode, int index, const char *name,
 	if (len > F2FS_NAME_LEN)
 		return -ERANGE;
 
-	base_addr = read_all_xattrs(inode, NULL);
+	base_addr = read_all_xattrs(inode, ipage);
 	if (!base_addr)
 		return -ENOMEM;
 
@@ -497,8 +498,11 @@ static int __f2fs_setxattr(struct inode *inode, int index,
 
 	len = strlen(name);
 
-	if (len > F2FS_NAME_LEN || size > MAX_VALUE_LEN(inode))
+	if (len > F2FS_NAME_LEN)
 		return -ERANGE;
+
+	if (size > MAX_VALUE_LEN(inode))
+		return -E2BIG;
 
 	base_addr = read_all_xattrs(inode, ipage);
 	if (!base_addr)
@@ -528,7 +532,7 @@ static int __f2fs_setxattr(struct inode *inode, int index,
 		int free;
 		/*
 		 * If value is NULL, it is remove operation.
-		 * In case of update operation, we caculate free.
+		 * In case of update operation, we calculate free.
 		 */
 		free = MIN_OFFSET(inode) - ((char *)last - (char *)base_addr);
 		if (found)
@@ -582,6 +586,9 @@ static int __f2fs_setxattr(struct inode *inode, int index,
 		inode->i_ctime = CURRENT_TIME;
 		clear_inode_flag(fi, FI_ACL_MODE);
 	}
+	if (index == F2FS_XATTR_INDEX_ENCRYPTION &&
+			!strcmp(name, F2FS_XATTR_NAME_ENCRYPTION_CONTEXT))
+		f2fs_set_encrypted_inode(inode);
 
 	if (ipage)
 		update_inode(inode, ipage);
