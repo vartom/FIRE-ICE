@@ -33,8 +33,9 @@ O2_FLAGS := \
 	-O3 \
 
 O3_FLAGS := \
+	-mstrict-align \
 	-mtune=cortex-a57 \
-	-march=armv8-a+crypto \
+	-march=armv8-a+crypto+crc \
 	--param l1-cache-size=64 \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192 \
