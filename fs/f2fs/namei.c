@@ -665,7 +665,6 @@ static void *f2fs_encrypted_follow_link(struct dentry *dentry,
 	struct f2fs_encrypted_symlink_data *sd;
 	loff_t size = min_t(loff_t, i_size_read(inode), PAGE_SIZE - 1);
 	u32 max_size = inode->i_sb->s_blocksize;
-	char *name = NULL;
 	int res;
 
 	res = f2fs_get_encryption_info(inode);
@@ -681,9 +680,12 @@ static void *f2fs_encrypted_follow_link(struct dentry *dentry,
 	/* Symlink is encrypted */
 	sd = (struct f2fs_encrypted_symlink_data *)caddr;
 	cstr.len = le16_to_cpu(sd->len);
-	name = kmalloc(cstr.len, GFP_NOFS);
-	memcpy(name, sd->encrypted_path, cstr.len);
-	cstr.name = name;
+	cstr.name = kmalloc(cstr.len, GFP_NOFS);
+	if (!cstr.name) {
+		res = -ENOMEM;
+		goto errout;
+	}
+	memcpy(cstr.name, sd->encrypted_path, cstr.len);
 
 	/* this is broken symlink case */
 	if (cstr.name[0] == 0 && cstr.len == 0) {
@@ -705,7 +707,7 @@ static void *f2fs_encrypted_follow_link(struct dentry *dentry,
 	if (res < 0)
 		goto errout;
 
-	kfree(name);
+	kfree(cstr.name);
 
 	paddr = pstr.name;
 
@@ -717,7 +719,7 @@ static void *f2fs_encrypted_follow_link(struct dentry *dentry,
 	page_cache_release(cpage);
 	return NULL;
 errout:
-	kfree(name);
+	kfree(cstr.name);
 	f2fs_fname_crypto_free_buffer(&pstr);
 	kunmap(cpage);
 	page_cache_release(cpage);

@@ -778,7 +778,6 @@ bool f2fs_fill_dentries(struct file *file, void *dirent, filldir_t filldir,
 	struct f2fs_str de_name = FSTR_INIT(NULL, 0);
 	unsigned char *types = f2fs_filetype_table;
 	int over;
-	char *name = NULL;
 
 	while (bit_pos < d->max) {
 		d_type = DT_UNKNOWN;
@@ -791,30 +790,32 @@ bool f2fs_fill_dentries(struct file *file, void *dirent, filldir_t filldir,
 		if (types && de->file_type < F2FS_FT_MAX)
 			d_type = types[de->file_type];
 
-		/* encrypted case */
+		de_name.name = d->filename[bit_pos];
 		de_name.len = le16_to_cpu(de->name_len);
-		name = kmalloc(de_name.len, GFP_NOFS);
-		memcpy(name, d->filename[bit_pos], de_name.len);
-		de_name.name = name;
 
 		if (f2fs_encrypted_inode(d->inode)) {
 			int save_len = fstr->len;
 			int ret;
 
+			de_name.name = kmalloc(de_name.len, GFP_NOFS);
+			if (!de_name.name)
+				return false;
+
+			memcpy(de_name.name, d->filename[bit_pos], de_name.len);
+
 			ret = f2fs_fname_disk_to_usr(d->inode, &de->hash_code,
 							&de_name, fstr);
+			kfree(de_name.name);
+			if (ret < 0)
+				return true;
+
 			de_name = *fstr;
 			fstr->len = save_len;
-			if (ret < 0) {
-				kfree(name);
-				return true;
-			}
 		}
 
 		over = filldir(dirent, de_name.name, de_name.len,
 					(n * d->max) + bit_pos,
 					le32_to_cpu(de->ino), d_type);
-		kfree(name);
 		if (over) {
 			file->f_pos += bit_pos - start_bit_pos;
 			return true;
