@@ -35,9 +35,11 @@ O1_FLAGS := \
 O2_FLAGS := \
 	-Os \
 	-fweb \
+	-freorder-blocks \
+	-foptimize-strlen \
+	-ftree-partial-pre \
 	-fpredictive-commoning \
 	-fsingle-precision-constant \
-	-ftree-partial-pre \
 
 O3_FLAGS := \
 	-mtune=cortex-a57 \
