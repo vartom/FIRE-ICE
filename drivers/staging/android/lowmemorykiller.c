@@ -127,9 +127,10 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 		if (!p)
 			continue;
 
-		if (test_tsk_thread_flag(p, TIF_MEMDIE) &&
-		    time_before_eq(jiffies, lowmem_deathpending_timeout)) {
+		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
 			task_unlock(p);
+			if (time_after(jiffies, lowmem_deathpending_timeout)) 
+				continue;
 			rcu_read_unlock();
 			return 0;
 		}
