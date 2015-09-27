@@ -36,7 +36,6 @@ O2_FLAGS := \
 	-Os \
 	-fweb \
 	-freorder-blocks \
-	-foptimize-strlen \
 	-ftree-partial-pre \
 	-fpredictive-commoning \
 	-fsingle-precision-constant \
