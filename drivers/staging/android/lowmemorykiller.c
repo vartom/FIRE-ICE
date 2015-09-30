@@ -86,6 +86,11 @@ static bool protected_apps(char *comm)
 {
 	if (strcmp(comm, "d.process.acore") == 0 ||
 			strcmp(comm, "ndroid.systemui") == 0 ||
+			strcmp(comm, "d.process.media") == 0 ||
+			strcmp(comm, "e.process.gapps") == 0 ||
+			strcmp(comm, "gle.android.gms") == 0 ||
+			strcmp(comm, "id.gms.wearable") == 0 ||
+			strcmp(comm, ".gms.persistent") == 0 ||
 			strcmp(comm, "system:ui") == 0)
 		return 1;
 	return 0;
