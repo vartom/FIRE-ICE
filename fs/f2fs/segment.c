@@ -15,6 +15,7 @@
 #include <linux/prefetch.h>
 #include <linux/kthread.h>
 #include <linux/swap.h>
+#include <linux/timer.h>
 
 #include "f2fs.h"
 #include "segment.h"
@@ -354,7 +355,7 @@ void f2fs_balance_fs(struct f2fs_sb_info *sbi)
 	 */
 	if (has_not_enough_free_secs(sbi, 0)) {
 		mutex_lock(&sbi->gc_mutex);
-		f2fs_gc(sbi);
+		f2fs_gc(sbi, false);
 	}
 }
 
@@ -374,7 +375,8 @@ void f2fs_balance_fs_bg(struct f2fs_sb_info *sbi)
 	/* checkpoint is the only way to shrink partial cached entries */
 	if (!available_free_memory(sbi, NAT_ENTRIES) ||
 			excess_prefree_segs(sbi) ||
-			!available_free_memory(sbi, INO_ENTRIES))
+			!available_free_memory(sbi, INO_ENTRIES) ||
+			jiffies > sbi->cp_expires)
 		f2fs_sync_fs(sbi->sb, true);
 }
 

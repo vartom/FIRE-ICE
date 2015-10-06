@@ -1639,27 +1639,44 @@ static int f2fs_ioc_gc(struct file *filp, unsigned long arg)
 {
 	struct inode *inode = file_inode(filp);
 	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
-	__u32 i, count;
+	__u32 sync;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
-	if (get_user(count, (__u32 __user *)arg))
+	if (get_user(sync, (__u32 __user *)arg))
 		return -EFAULT;
 
-	if (!count || count > F2FS_BATCH_GC_MAX_NUM)
-		return -EINVAL;
+	if (f2fs_readonly(sbi->sb))
+		return -EROFS;
 
-	for (i = 0; i < count; i++) {
+	if (!sync) {
 		if (!mutex_trylock(&sbi->gc_mutex))
-			break;
-
-		if (f2fs_gc(sbi))
-			break;
+			return -EBUSY;
+	} else {
+		mutex_lock(&sbi->gc_mutex);
 	}
 
-	if (put_user(i, (__u32 __user *)arg))
-		return -EFAULT;
+	return f2fs_gc(sbi, sync);
+}
+
+static int f2fs_ioc_write_checkpoint(struct file *filp, unsigned long arg)
+{
+	struct inode *inode = file_inode(filp);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
+	struct cp_control cpc;
+
+	if (!capable(CAP_SYS_ADMIN))
+		return -EPERM;
+
+	if (f2fs_readonly(sbi->sb))
+		return -EROFS;
+
+	cpc.reason = __get_cp_reason(sbi);
+
+	mutex_lock(&sbi->gc_mutex);
+	write_checkpoint(sbi, &cpc);
+	mutex_unlock(&sbi->gc_mutex);
 
 	return 0;
 }
@@ -1695,6 +1712,8 @@ long f2fs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return f2fs_ioc_get_encryption_pwsalt(filp, arg);
 	case F2FS_IOC_GARBAGE_COLLECT:
 		return f2fs_ioc_gc(filp, arg);
+	case F2FS_IOC_WRITE_CHECKPOINT:
+		return f2fs_ioc_write_checkpoint(filp, arg);
 	default:
 		return -ENOTTY;
 	}

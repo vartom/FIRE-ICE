@@ -77,8 +77,11 @@ static int gc_thread_func(void *data)
 
 		stat_inc_bggc_count(sbi);
 
+		trace_f2fs_background_gc(sbi->sb, wait_ms,
+				prefree_segments(sbi), free_segments(sbi));
+
 		/* if return value is not zero, no victim was selected */
-		if (f2fs_gc(sbi))
+		if (f2fs_gc(sbi, test_opt(sbi, FORCE_FG_GC)))
 			wait_ms = gc_th->no_gc_sleep_time;
 
 		/* balancing f2fs's metadata periodically */
@@ -257,6 +260,7 @@ static int get_victim_by_default(struct f2fs_sb_info *sbi,
 	struct dirty_seglist_info *dirty_i = DIRTY_I(sbi);
 	struct victim_sel_policy p;
 	unsigned int secno, max_cost;
+	unsigned int last_segment = MAIN_SEGS(sbi);
 	int nsearched = 0;
 
 	mutex_lock(&dirty_i->seglist_lock);
@@ -266,6 +270,9 @@ static int get_victim_by_default(struct f2fs_sb_info *sbi,
 
 	p.min_segno = NULL_SEGNO;
 	p.min_cost = max_cost = get_max_cost(sbi, &p);
+
+	if (p.max_search == 0)
+		goto out;
 
 	if (p.alloc_mode == LFS && gc_type == FG_GC) {
 		p.min_segno = check_bg_victims(sbi);
@@ -277,9 +284,10 @@ static int get_victim_by_default(struct f2fs_sb_info *sbi,
 		unsigned long cost;
 		unsigned int segno;
 
-		segno = find_next_bit(p.dirty_segmap, MAIN_SEGS(sbi), p.offset);
-		if (segno >= MAIN_SEGS(sbi)) {
+		segno = find_next_bit(p.dirty_segmap, last_segment, p.offset);
+		if (segno >= last_segment) {
 			if (sbi->last_victim[p.gc_mode]) {
+				last_segment = sbi->last_victim[p.gc_mode];
 				sbi->last_victim[p.gc_mode] = 0;
 				p.offset = 0;
 				continue;
@@ -327,6 +335,7 @@ got_it:
 				sbi->cur_victim_sec,
 				prefree_segments(sbi), free_segments(sbi));
 	}
+out:
 	mutex_unlock(&dirty_i->seglist_lock);
 
 	return (p.min_segno == NULL_SEGNO) ? 0 : 1;
@@ -794,12 +803,12 @@ static int do_garbage_collect(struct f2fs_sb_info *sbi, unsigned int segno,
 	return nfree;
 }
 
-int f2fs_gc(struct f2fs_sb_info *sbi)
+int f2fs_gc(struct f2fs_sb_info *sbi, bool sync)
 {
 	unsigned int segno, i;
-	int gc_type = BG_GC;
+	int gc_type = sync ? FG_GC : BG_GC;
 	int sec_freed = 0;
-	int ret = -1;
+	int ret = -EINVAL;
 	struct cp_control cpc;
 	struct gc_inode_list gc_list = {
 		.ilist = LIST_HEAD_INIT(gc_list.ilist),
@@ -846,15 +855,20 @@ gc_more:
 	if (gc_type == FG_GC)
 		sbi->cur_victim_sec = NULL_SEGNO;
 
-	if (has_not_enough_free_secs(sbi, sec_freed))
-		goto gc_more;
+	if (!sync) {
+		if (has_not_enough_free_secs(sbi, sec_freed))
+			goto gc_more;
 
-	if (gc_type == FG_GC)
-		write_checkpoint(sbi, &cpc);
+		if (gc_type == FG_GC)
+			write_checkpoint(sbi, &cpc);
+	}
 stop:
 	mutex_unlock(&sbi->gc_mutex);
 
 	put_gc_inode(&gc_list);
+
+	if (sync)
+		ret = sec_freed ? 0 : -EAGAIN;
 	return ret;
 }
 
