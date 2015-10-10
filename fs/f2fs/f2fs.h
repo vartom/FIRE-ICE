@@ -233,6 +233,7 @@ static inline bool __has_cursum_space(struct f2fs_summary_block *sum, int size,
 #define FS_GOING_DOWN_FULLSYNC 0x0     /* going down with full sync */
 #define FS_GOING_DOWN_METASYNC 0x1     /* going down with metadata */
 #define FS_GOING_DOWN_NOSYNC   0x2     /* going down */
+#define FS_GOING_DOWN_METAFLUSH	0x3	/* going down with meta flush */
 
 #define F2FS_IOCTL_MAGIC		0xf5
 #define F2FS_IOC_START_ATOMIC_WRITE	_IO(F2FS_IOCTL_MAGIC, 1)
@@ -1231,6 +1232,24 @@ static inline unsigned int valid_inode_count(struct f2fs_sb_info *sbi)
 	return sbi->total_valid_inode_count;
 }
 
+static inline struct page *f2fs_grab_cache_page(struct address_space *mapping,
+						pgoff_t index, bool for_write)
+{
+	if (!for_write)
+		return grab_cache_page(mapping, index);
+	return grab_cache_page_write_begin(mapping, index, AOP_FLAG_NOFS);
+}
+
+static inline void f2fs_copy_page(struct page *src, struct page *dst)
+{
+	char *src_kaddr = kmap(src);
+	char *dst_kaddr = kmap(dst);
+
+	memcpy(dst_kaddr, src_kaddr, PAGE_SIZE);
+	kunmap(dst);
+	kunmap(src);
+}
+
 static inline void f2fs_put_page(struct page *page, int unlock)
 {
 	if (!page)
@@ -1751,6 +1770,7 @@ int f2fs_issue_flush(struct f2fs_sb_info *);
 int create_flush_cmd_control(struct f2fs_sb_info *);
 void destroy_flush_cmd_control(struct f2fs_sb_info *);
 void invalidate_blocks(struct f2fs_sb_info *, block_t);
+bool is_checkpointed_data(struct f2fs_sb_info *, block_t);
 void refresh_sit_entry(struct f2fs_sb_info *, block_t, block_t);
 void clear_prefree_segments(struct f2fs_sb_info *, struct cp_control *);
 void release_discard_addrs(struct f2fs_sb_info *);
@@ -1817,9 +1837,9 @@ void set_data_blkaddr(struct dnode_of_data *);
 int reserve_new_block(struct dnode_of_data *);
 int f2fs_get_block(struct dnode_of_data *, pgoff_t);
 int f2fs_reserve_block(struct dnode_of_data *, pgoff_t);
-struct page *get_read_data_page(struct inode *, pgoff_t, int);
+struct page *get_read_data_page(struct inode *, pgoff_t, int, bool);
 struct page *find_data_page(struct inode *, pgoff_t);
-struct page *get_lock_data_page(struct inode *, pgoff_t);
+struct page *get_lock_data_page(struct inode *, pgoff_t, bool);
 struct page *get_new_data_page(struct inode *, struct page *, pgoff_t, bool);
 int do_write_data_page(struct f2fs_io_info *);
 int f2fs_fiemap(struct inode *inode, struct fiemap_extent_info *, u64, u64);

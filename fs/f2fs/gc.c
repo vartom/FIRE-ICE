@@ -550,7 +550,7 @@ static void move_encrypted_block(struct inode *inode, block_t bidx)
 	int err;
 
 	/* do not read out */
-	page = grab_cache_page(inode->i_mapping, bidx);
+	page = f2fs_grab_cache_page(inode->i_mapping, bidx, false);
 	if (!page)
 		return;
 
@@ -569,7 +569,8 @@ static void move_encrypted_block(struct inode *inode, block_t bidx)
 	fio.page = page;
 	fio.blk_addr = dn.data_blkaddr;
 
-	fio.encrypted_page = grab_cache_page(META_MAPPING(fio.sbi), fio.blk_addr);
+	fio.encrypted_page = f2fs_grab_cache_page(META_MAPPING(fio.sbi),
+						fio.blk_addr, true);
 	if (!fio.encrypted_page)
 		goto put_out;
 
@@ -617,7 +618,7 @@ static void move_data_page(struct inode *inode, block_t bidx, int gc_type)
 {
 	struct page *page;
 
-	page = get_lock_data_page(inode, bidx);
+	page = get_lock_data_page(inode, bidx, true);
 	if (IS_ERR(page))
 		return;
 
@@ -711,7 +712,7 @@ next_step:
 
 			start_bidx = start_bidx_of_node(nofs, F2FS_I(inode));
 			data_page = get_read_data_page(inode,
-					start_bidx + ofs_in_node, READA);
+					start_bidx + ofs_in_node, READA, true);
 			if (IS_ERR(data_page)) {
 				iput(inode);
 				continue;

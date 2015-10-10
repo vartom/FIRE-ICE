@@ -1352,6 +1352,8 @@ try_onemore:
 		f2fs_commit_super(sbi, true);
 	}
 
+	sbi->cp_expires = round_jiffies_up(jiffies);
+
 	return 0;
 
 free_kobj:

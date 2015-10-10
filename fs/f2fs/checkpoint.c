@@ -280,8 +280,10 @@ long sync_meta_pages(struct f2fs_sb_info *sbi, enum page_type type,
 
 			if (prev == LONG_MAX)
 				prev = page->index - 1;
-			if (nr_to_write != LONG_MAX && page->index != prev + 1)
-				break;
+			if (nr_to_write != LONG_MAX && page->index != prev + 1) {
+				pagevec_release(&pvec);
+				goto stop;
+			}
 
 			lock_page(page);
 
@@ -310,7 +312,7 @@ continue_unlock:
 		pagevec_release(&pvec);
 		cond_resched();
 	}
-
+stop:
 	if (nwritten)
 		f2fs_submit_merged_bio(sbi, type, WRITE);
 
