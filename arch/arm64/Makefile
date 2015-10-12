@@ -34,11 +34,8 @@ O1_FLAGS := \
 	-floop-unroll-and-jam \
 
 O2_FLAGS := \
-	-Os \
+	-O3 \
 	-fweb \
-	-freorder-blocks \
-	-ftree-partial-pre \
-	-fpredictive-commoning \
 	-fsingle-precision-constant \
 
 O3_FLAGS := \
