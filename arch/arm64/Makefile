@@ -20,23 +20,12 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
-	-pipe \
-	-fgcse-sm \
-	-ftree-ch \
-	-fgcse-las \
 	-fgraphite \
-	-floop-block \
-	-floop-strip-mine \
-	-floop-interchange \
-	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
-	-floop-unroll-and-jam \
 
-O2_FLAGS := \
-	-O3 \
-	-fweb \
-	-fsingle-precision-constant \
+#O2_FLAGS := \
+	-Ofast \
 
 O3_FLAGS := \
 	-mtune=cortex-a57 \
@@ -45,8 +34,8 @@ O3_FLAGS := \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192 \
 
-CFLAGS_KERNEL   += -ffast-math $(O1_FLAGS) $(O2_FLAGS) $(O3_FLAGS)
-KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS) $(O3_FLAGS)
+CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O3_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
