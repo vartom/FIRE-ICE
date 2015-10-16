@@ -1376,6 +1376,9 @@ void write_meta_page(struct f2fs_sb_info *sbi, struct page *page)
 		.encrypted_page = NULL,
 	};
 
+	if (unlikely(page->index >= MAIN_BLKADDR(sbi)))
+		fio.rw &= ~REQ_META;
+
 	set_page_writeback(page);
 	f2fs_submit_page_mbio(&fio);
 }
@@ -1540,6 +1543,23 @@ void f2fs_wait_on_page_writeback(struct page *page,
 	}
 }
 
+void f2fs_wait_on_encrypted_page_writeback(struct f2fs_sb_info *sbi,
+							block_t blkaddr)
+{
+	struct page *cpage;
+
+	if (blkaddr == NEW_ADDR)
+		return;
+
+	f2fs_bug_on(sbi, blkaddr == NULL_ADDR);
+
+	cpage = find_lock_page(META_MAPPING(sbi), blkaddr);
+	if (cpage) {
+		f2fs_wait_on_page_writeback(cpage, DATA);
+		f2fs_put_page(cpage, 1);
+	}
+}
+
 static int read_compacted_summaries(struct f2fs_sb_info *sbi)
 {
 	struct f2fs_checkpoint *ckpt = F2FS_CKPT(sbi);
@@ -1677,7 +1697,7 @@ static int restore_curseg_summaries(struct f2fs_sb_info *sbi)
 
 		if (npages >= 2)
 			ra_meta_pages(sbi, start_sum_block(sbi), npages,
-								META_CP);
+							META_CP, true);
 
 		/* restore for compacted data summary */
 		if (read_compacted_summaries(sbi))
@@ -1687,7 +1707,7 @@ static int restore_curseg_summaries(struct f2fs_sb_info *sbi)
 
 	if (__exist_node_summaries(sbi))
 		ra_meta_pages(sbi, sum_blk_addr(sbi, NR_CURSEG_TYPE, type),
-					NR_CURSEG_TYPE - type, META_CP);
+					NR_CURSEG_TYPE - type, META_CP, true);
 
 	for (; type <= CURSEG_COLD_NODE; type++) {
 		err = read_normal_summaries(sbi, type);
@@ -2174,7 +2194,7 @@ static void build_sit_entries(struct f2fs_sb_info *sbi)
 	int nrpages = MAX_BIO_BLOCKS(sbi);
 
 	do {
-		readed = ra_meta_pages(sbi, start_blk, nrpages, META_SIT);
+		readed = ra_meta_pages(sbi, start_blk, nrpages, META_SIT, true);
 
 		start = start_blk * sit_i->sents_per_block;
 		end = (start_blk + readed) * sit_i->sents_per_block;

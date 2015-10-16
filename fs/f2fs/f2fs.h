@@ -509,6 +509,7 @@ struct f2fs_nm_info {
 	nid_t available_nids;		/* maximum available node ids */
 	nid_t next_scan_nid;		/* the next nid to be scanned */
 	unsigned int ram_thresh;	/* control the memory footprint */
+	unsigned int ra_nid_pages;	/* # of nid pages to be readaheaded */
 
 	/* NAT cache management */
 	struct radix_tree_root nat_root;/* root of the nat entry cache */
@@ -1789,6 +1790,7 @@ void f2fs_replace_block(struct f2fs_sb_info *, struct dnode_of_data *,
 void allocate_data_block(struct f2fs_sb_info *, struct page *,
 		block_t, block_t *, struct f2fs_summary *, int);
 void f2fs_wait_on_page_writeback(struct page *, enum page_type);
+void f2fs_wait_on_encrypted_page_writeback(struct f2fs_sb_info *, block_t);
 void write_data_summaries(struct f2fs_sb_info *, block_t);
 void write_node_summaries(struct f2fs_sb_info *, block_t);
 int lookup_journal_in_cursum(struct f2fs_summary_block *,
@@ -1804,8 +1806,9 @@ void destroy_segment_manager_caches(void);
  */
 struct page *grab_meta_page(struct f2fs_sb_info *, pgoff_t);
 struct page *get_meta_page(struct f2fs_sb_info *, pgoff_t);
+struct page *get_tmp_page(struct f2fs_sb_info *, pgoff_t);
 bool is_valid_blkaddr(struct f2fs_sb_info *, block_t, int);
-int ra_meta_pages(struct f2fs_sb_info *, block_t, int, int);
+int ra_meta_pages(struct f2fs_sb_info *, block_t, int, int, bool);
 void ra_meta_pages_cond(struct f2fs_sb_info *, pgoff_t);
 long sync_meta_pages(struct f2fs_sb_info *, enum page_type, long);
 void add_dirty_inode(struct f2fs_sb_info *, nid_t, int type);

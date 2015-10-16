@@ -772,6 +772,13 @@ int f2fs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
 	if (ret)
 		return ret;
 
+	/* we don't need to use inline_data strictly */
+	if (f2fs_has_inline_data(inode)) {
+		ret = f2fs_convert_inline_inode(inode);
+		if (ret)
+			return ret;
+	}
+
 	mutex_lock(&inode->i_mutex);
 
 	if (len >= isize) {
@@ -957,21 +964,14 @@ submit_and_realloc:
 
 			if (f2fs_encrypted_inode(inode) &&
 					S_ISREG(inode->i_mode)) {
-				struct page *cpage;
 
 				ctx = f2fs_get_crypto_ctx(inode);
 				if (IS_ERR(ctx))
 					goto set_error_page;
 
 				/* wait the page to be moved by cleaning */
-				cpage = find_lock_page(
-						META_MAPPING(F2FS_I_SB(inode)),
-						block_nr);
-				if (cpage) {
-					f2fs_wait_on_page_writeback(cpage,
-									DATA);
-					f2fs_put_page(cpage, 1);
-				}
+				f2fs_wait_on_encrypted_page_writeback(
+						F2FS_I_SB(inode), block_nr);
 			}
 
 			bio = bio_alloc(GFP_KERNEL,
@@ -1033,6 +1033,9 @@ static int f2fs_read_data_pages(struct file *file,
 			struct list_head *pages, unsigned nr_pages)
 {
 	struct inode *inode = file->f_mapping->host;
+	struct page *page = list_entry(pages->prev, struct page, lru);
+
+	trace_f2fs_readpages(inode, page, nr_pages);
 
 	/* If the file has inline data, skip readpages */
 	if (f2fs_has_inline_data(inode))
@@ -1062,6 +1065,11 @@ int do_write_data_page(struct f2fs_io_info *fio)
 	}
 
 	if (f2fs_encrypted_inode(inode) && S_ISREG(inode->i_mode)) {
+
+		/* wait for GCed encrypted page writeback */
+		f2fs_wait_on_encrypted_page_writeback(F2FS_I_SB(inode),
+							fio->blk_addr);
+
 		fio->encrypted_page = f2fs_encrypt(inode, fio->page);
 		if (IS_ERR(fio->encrypted_page)) {
 			err = PTR_ERR(fio->encrypted_page);
@@ -1449,6 +1457,10 @@ put_next:
 	f2fs_unlock_op(sbi);
 
 	f2fs_wait_on_page_writeback(page, DATA);
+
+	/* wait for GCed encrypted page writeback */
+	if (f2fs_encrypted_inode(inode) && S_ISREG(inode->i_mode))
+		f2fs_wait_on_encrypted_page_writeback(sbi, dn.data_blkaddr);
 
 	if (len == PAGE_CACHE_SIZE)
 		goto out_update;
