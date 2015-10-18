@@ -20,22 +20,26 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
+	-fweb \
+	-fivopts \
+	-fgcse-sm \
+	-fgcse-las \
 	-fgraphite \
+	-ftree-loop-im \
+	-frename-registers \
+	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
 
-#O2_FLAGS := \
-	-Ofast \
-
-O3_FLAGS := \
+O2_FLAGS := \
 	-mtune=cortex-a57 \
 	-march=armv8-a+crypto+crc \
 	--param l1-cache-size=64 \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192 \
 
-CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O1_FLAGS) $(O3_FLAGS)
-KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O3_FLAGS)
+CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O2_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
