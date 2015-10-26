@@ -119,11 +119,10 @@ int check_wakeup_irqs(void)
 					irq,
 					desc->action && desc->action->name ?
 					desc->action->name : "");
-				pr_info("Wakeup IRQ %d %s pending, suspend aborted\n",
+				pr_info("Wakeup IRQ %d %s pending, suspend aborted: ignored\n",
 					irq,
 					desc->action && desc->action->name ?
 					desc->action->name : "");
-				return -EBUSY;
 			}
 			continue;
 		}
