@@ -20,6 +20,7 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
+	-O3 \
 	-fweb \
 	-fivopts \
 	-fgcse-sm \
@@ -27,7 +28,6 @@ O1_FLAGS := \
 	-fgraphite \
 	-ftree-loop-im \
 	-frename-registers \
-	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
 
@@ -38,7 +38,6 @@ O2_FLAGS := \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192 \
 
-CFLAGS_KERNEL   += -fgcse-lm -fgcse-sm -fsched-spec-load -ffast-math -fsingle-precision-constant $(O2_FLAGS)
 KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
