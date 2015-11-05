@@ -27,7 +27,6 @@ O1_FLAGS := \
 	-fgcse-las \
 	-fgraphite \
 	-ftree-loop-im \
-	-frename-registers \
 	-fgraphite-identity \
 	-floop-nest-optimize \
 
