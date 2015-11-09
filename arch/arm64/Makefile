@@ -20,24 +20,23 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 KBUILD_DEFCONFIG := defconfig
 
 O1_FLAGS := \
-	-O3 \
-	-fweb \
-	-fivopts \
 	-fgcse-sm \
+	-fgcse-lm \
 	-fgcse-las \
 	-fgraphite \
-	-ftree-loop-im \
+	-ftree-partial-pre \
+	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
+	-fpredictive-commoning \
 
 O2_FLAGS := \
 	-mtune=cortex-a57 \
-	-march=armv8-a+crypto+crc \
 	--param l1-cache-size=64 \
 	--param l2-cache-size=2048 \
 	--param l1-cache-line-size=192 \
 
-KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
+KBUILD_CFLAGS	+= -pipe -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
