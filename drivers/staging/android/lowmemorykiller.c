@@ -83,29 +83,19 @@ static unsigned long lowmem_deathpending_timeout;
 			pr_info(x);			\
 	} while (0)
 
-static bool avoid_to_kill(uid_t uid)
-{
-	/* 
-	 * uid == 0 > root
-	 * uid == 789 > wifi
-	 * uid == 1932 > dhcp
-	 */
-	if (uid == 0 || uid == 789 || uid == 1932)
-		return 1;
-	return 0;
-}
-
 static bool protected_apps(char *comm)
 {
  	if (strcmp(comm, "d.process.acore") == 0 ||
- 			strcmp(comm, "ndroid.systemui") == 0 ||
-			strcmp(comm, "d.process.media") == 0 ||
-			strcmp(comm, "e.process.gapps") == 0 ||
-			strcmp(comm, "gle.android.gms") == 0 ||
-			strcmp(comm, "id.gms.wearable") == 0 ||
-			strcmp(comm, ".gms.persistent") == 0 ||
- 			strcmp(comm, "system:ui") == 0)
- 		return 1;
+ 		strcmp(comm, "ndroid.systemui") == 0 ||
+		strcmp(comm, "d.process.media") == 0 ||
+		strcmp(comm, "e.process.gapps") == 0 ||
+		strcmp(comm, "gle.android.gms") == 0 ||
+		strcmp(comm, "id.gms.wearable") == 0 ||
+		strcmp(comm, ".gms.persistent") == 0 ||
+		strcmp(comm, "le.android.talk") == 0 ||
+ 		strcmp(comm, "system:ui") == 0)
+ 	return 1;
+	else
  	return 0;
 }
 
@@ -325,8 +315,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 {
 	struct task_struct *tsk;
 	struct task_struct *selected = NULL;
-	const struct cred *pcred;
-	unsigned int uid = 0;
 	int rem = 0;
 	int tasksize;
 	int i;
@@ -439,6 +427,12 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			task_unlock(p);
 			continue;
 		}
+		if (protected_apps(p->comm)){
+			lowmem_print(3, "skip protected %d (%s), adj %hd, size %d, to kill\n",
+			     	p->pid, p->comm, oom_score_adj, tasksize);
+			task_unlock(p);
+			continue;
+		}
 		tasksize = get_mm_rss(p->mm);
 		task_unlock(p);
 		if (tasksize <= 0)
@@ -450,25 +444,11 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			    tasksize <= selected_tasksize)
 				continue;
 		}
-		pcred = __task_cred(p);
-		uid = pcred->uid;
-		if (avoid_to_kill(uid) || protected_apps(p->comm)){
-			if (tasksize * (long)(PAGE_SIZE / 1024) >= 100000){
-				selected = p;
-				selected_tasksize = tasksize;
-				selected_oom_score_adj = oom_score_adj;
-				lowmem_print(3, "select protected %d (%s), adj %hd, size %d, to kill\n",
-				     	p->pid, p->comm, oom_score_adj, tasksize);
-			} else
-			lowmem_print(3, "skip protected %d (%s), adj %hd, size %d, to kill\n",
-			     	p->pid, p->comm, oom_score_adj, tasksize);
-		} else {
 			selected = p;
 			selected_tasksize = tasksize;
 			selected_oom_score_adj = oom_score_adj;
 			lowmem_print(3, "select %d (%s), adj %hd, size %d, to kill\n",
 			     	p->pid, p->comm, oom_score_adj, tasksize);
-		}
 	}
 	if (selected) {
 		int i, j;
