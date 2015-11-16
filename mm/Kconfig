@@ -535,6 +535,13 @@ config ZSWAP
 	  they have not be fully explored on the large set of potential
 	  configurations and workloads that exist.
 
+config ZPOOL
+	tristate "Common API for compressed memory storage"
+	default n
+	help
+	  Compressed memory storage API.  This allows using either zbud or
+	  zsmalloc.
+
 config BALANCE_ANON_FILE_RECLAIM
 	bool "During reclaim treat anon and file backed pages equally"
 	depends on SWAP
@@ -543,13 +550,6 @@ config BALANCE_ANON_FILE_RECLAIM
 	  equally.
 	  Swapping anonymous pages out to memory can be efficient enough to justify
 	  treating anonymous and file backed pages equally.
-
-config ZPOOL
-	tristate "Common API for compressed memory storage"
-	default n
-	help
-	  Compressed memory storage API.  This allows using either zbud or
-	  zsmalloc.
 
 config GENERIC_EARLY_IOREMAP
 	bool
