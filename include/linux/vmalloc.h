@@ -172,7 +172,6 @@ pcpu_free_vm_areas(struct vm_struct **vms, int nr_vms)
 
 #ifdef CONFIG_MMU
 #define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
-#endif
 #else
 #define VMALLOC_TOTAL 0UL
 #endif
