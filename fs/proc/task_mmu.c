@@ -1189,7 +1189,7 @@ out:
 
 static int pagemap_open(struct inode *inode, struct file *file)
 {
-	/* do not disclose physical addresses to unprivileged
+	/* do not disclose physical addresses: attack vector
 	   userspace (closes a rowhammer attack vector) */
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
