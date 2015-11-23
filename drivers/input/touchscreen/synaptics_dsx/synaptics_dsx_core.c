@@ -3252,6 +3252,11 @@ static void synaptics_rmi4_early_suspend(struct device *dev)
 exit:
 	rmi4_data->suspend = true;
 
+#ifdef CONFIG_STATE_NOTIFIER
+		if (!use_fb_notifier)
+			state_suspend();
+#endif
+
 	return;
 }
 
@@ -3296,7 +3301,12 @@ exit:
 		rmi4_data->enable_wakeup_gesture = wakeup_gesture_temp;
 		wakeup_gesture_changed = false;
 	}
-			
+	
+#ifdef CONFIG_STATE_NOTIFIER
+		if (!use_fb_notifier)
+			state_resume();
+#endif
+
 	return;
 }
 
@@ -3361,11 +3371,6 @@ static int synaptics_rmi4_suspend(struct device *dev)
 	if (rmi4_data->pwr_reg)
 		regulator_disable(rmi4_data->pwr_reg);
 
-#ifdef CONFIG_STATE_NOTIFIER
-		if (!use_fb_notifier)
-			state_suspend();
-#endif
-
 	return 0;
 }
 
@@ -3409,11 +3414,6 @@ static int synaptics_rmi4_resume(struct device *dev)
 				exp_fhandler->exp_fn->resume(rmi4_data);
 	}
 	mutex_unlock(&exp_data.mutex);
-	
-#ifdef CONFIG_STATE_NOTIFIER
-		if (!use_fb_notifier)
-			state_resume();
-#endif
 
 	return 0;
 }
