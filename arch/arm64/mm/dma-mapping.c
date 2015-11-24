@@ -1605,7 +1605,7 @@ ____iommu_create_mapping(struct device *dev, dma_addr_t *req,
 	struct dma_iommu_mapping *mapping = dev->archdata.mapping;
 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
 	dma_addr_t dma_addr, iova;
-	int i, ret;
+	int i, ret = DMA_ERROR_CODE;
 
 	if (req)
 		dma_addr = __alloc_iova_at(mapping, req, size, attrs);
