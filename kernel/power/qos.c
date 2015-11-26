@@ -26,9 +26,8 @@
  *
  * Mark Gross <mgross@linux.intel.com>
  *
- * Support added for bounded constraints by
- * Sai Gurrappadi <sgurrappadi@nvidia.com>
- * Copyright (c) 2013-2014, NVIDIA CORPORATION. All rights reserved.
+ * Support added for bounded constraints
+ * Copyright (c) 2013-2015, NVIDIA CORPORATION. All rights reserved.
  */
 
 /*#define DEBUG*/
@@ -48,6 +47,7 @@
 #include <linux/moduleparam.h>
 #include <linux/uaccess.h>
 #include <linux/export.h>
+#include <trace/events/power.h>
 
 /*
  * locking rule: all changes to constraints or notifiers lists
@@ -243,6 +243,19 @@ static struct pm_qos_object emc_freq_min_pm_qos = {
 	.name = "emc_freq_min",
 };
 
+static BLOCKING_NOTIFIER_HEAD(max_cpu_pwr_notifier);
+static struct pm_qos_constraints max_cpu_pwr_constraints = {
+	.list = PLIST_HEAD_INIT(max_cpu_pwr_constraints.list),
+	.target_value = PM_QOS_CPU_POWER_MAX_DEFAULT_VALUE,
+	.default_value = PM_QOS_CPU_POWER_MAX_DEFAULT_VALUE,
+	.type = PM_QOS_MIN,
+	.notifiers = &max_cpu_pwr_notifier,
+};
+static struct pm_qos_object max_cpu_pwr_qos = {
+	.constraints = &max_cpu_pwr_constraints,
+	.name = "max_cpu_power",
+};
+
 static struct pm_qos_object *pm_qos_array[] = {
 	&null_pm_qos,
 	&cpu_dma_pm_qos,
@@ -254,7 +267,8 @@ static struct pm_qos_object *pm_qos_array[] = {
 	&cpu_freq_max_pm_qos,
 	&gpu_freq_min_pm_qos,
 	&gpu_freq_max_pm_qos,
-	&emc_freq_min_pm_qos
+	&emc_freq_min_pm_qos,
+	&max_cpu_pwr_qos
 };
 
 static struct pm_qos_bounded_object * const pm_qos_bounded_obj_array[] = {
@@ -295,6 +309,7 @@ static const struct file_operations pm_qos_bounded_constraint_fops = {
 };
 
 static bool pm_qos_enabled __read_mostly = true;
+static int disable_priorities;
 
 /* unlocked internal variant */
 static inline int pm_qos_get_value(struct pm_qos_constraints *c)
@@ -365,6 +380,9 @@ static size_t pm_qos_find_bounded_targets(struct pm_qos_bounded_constraint *c,
 	 * ranges at each priority level
 	 */
 	plist_for_each_entry(p, &c->prio_list, node) {
+		if (p->node.prio < disable_priorities)
+			continue;
+
 		tmp_min = min_constraint->default_value;
 		tmp_max = max_constraint->default_value;
 		if (!plist_head_empty(&p->max_list))
@@ -549,6 +567,8 @@ static int pm_qos_update_bounded_target(struct pm_qos_constraints *c, s32 value,
 	case PM_QOS_REMOVE_REQ:
 		prio = pm_qos_get_prio_level(priority, &parent->prio_list);
 		pm_qos_remove_node(&req->node, prio, parent, c->type);
+		trace_pm_qos_request(req->pm_qos_class, -1,
+					-1 , (unsigned long)req);
 		break;
 	case PM_QOS_UPDATE_REQ:
 		/*
@@ -575,6 +595,8 @@ static int pm_qos_update_bounded_target(struct pm_qos_constraints *c, s32 value,
 		}
 		plist_node_init(&req->node, new_value);
 		pm_qos_add_node(&req->node, prio, c->type);
+		trace_pm_qos_request(req->pm_qos_class, new_value,
+					priority, (unsigned long)req);
 		break;
 	default:
 		break;
@@ -626,6 +648,8 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 			 enum pm_qos_req_action action, int value)
 {
 	int prev_value, curr_value, new_value, ret;
+	struct pm_qos_request *req = container_of(node, struct pm_qos_request,
+							node);
 
 	mutex_lock(&pm_qos_lock);
 	prev_value = pm_qos_get_value(c);
@@ -637,6 +661,8 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	switch (action) {
 	case PM_QOS_REMOVE_REQ:
 		plist_del(node, &c->list);
+		trace_pm_qos_request(req->pm_qos_class, -1, -1,
+					(unsigned long)req);
 		break;
 	case PM_QOS_UPDATE_REQ:
 		/*
@@ -648,6 +674,8 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	case PM_QOS_ADD_REQ:
 		plist_node_init(node, new_value);
 		plist_add(node, &c->list);
+		trace_pm_qos_request(req->pm_qos_class, new_value, 10,
+					(unsigned long)req);
 		break;
 	default:
 		/* no action */
@@ -1198,6 +1226,72 @@ static struct kernel_param_ops pm_qos_enabled_ops = {
 };
 
 module_param_cb(enable, &pm_qos_enabled_ops, &pm_qos_enabled, 0644);
+
+static int pm_qos_disable_priorities_set(const char *arg,
+					 const struct kernel_param *kp)
+{
+	int ret, i, old;
+	struct pm_qos_constraints *c;
+	struct pm_qos_bounded_constraint *parent;
+
+	old = disable_priorities;
+	ret = param_set_int(arg, kp);
+	if (ret) {
+		pr_warn("%s: cannot set PM QoS disable_priorities to %s\n",
+			__func__, arg);
+		return ret;
+	}
+
+	if (disable_priorities > PM_QOS_NUM_PRIO)
+		disable_priorities = PM_QOS_NUM_PRIO + 1;
+
+	if (disable_priorities < PM_QOS_PRIO_HIGHEST)
+		disable_priorities = PM_QOS_PRIO_HIGHEST;
+
+	if (old == disable_priorities)
+		return ret;
+
+	mutex_lock(&pm_qos_lock);
+
+	for (i = 1; i < PM_QOS_NUM_BOUNDED_CLASSES; i++) {
+		s32 old_min, old_max, new_min, new_max;
+		parent = pm_qos_bounded_obj_array[i]->bounds;
+		old_min = pm_qos_read_min_bound(i);
+		old_max = pm_qos_read_max_bound(i);
+		pm_qos_set_bounded_targets(parent);
+		new_min = pm_qos_read_min_bound(i);
+		new_max = pm_qos_read_max_bound(i);
+		if (old_min != new_min) {
+			c = pm_qos_array[parent->min_class]->constraints;
+			blocking_notifier_call_chain(c->notifiers,
+					(unsigned long)new_min,
+					NULL);
+		}
+		if (old_max != new_max) {
+			c = pm_qos_array[parent->max_class]->constraints;
+			blocking_notifier_call_chain(c->notifiers,
+					(unsigned long)new_max,
+					NULL);
+		}
+	}
+
+	mutex_unlock(&pm_qos_lock);
+
+	return ret;
+}
+
+static int pm_qos_disable_priorities_get(char *buffer,
+					 const struct kernel_param *kp)
+{
+	return param_get_int(buffer, kp);
+}
+static struct kernel_param_ops pm_qos_disable_priorities_ops = {
+	.set = pm_qos_disable_priorities_set,
+	.get = pm_qos_disable_priorities_get,
+};
+
+module_param_cb(disable_priorities, &pm_qos_disable_priorities_ops,
+		&disable_priorities, 0644);
 
 /**
  * pm_qos_add_notifier - sets notification entry for changes to target value

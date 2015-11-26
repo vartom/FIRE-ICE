@@ -110,4 +110,10 @@ config TOUCHSCREEN_SYNAPTICS_DSX_WAKEUP_GESTURE
 	  Say Y here to enable support for double tap gesture.
 
 	  If unsure, say N.
+	  
+config STATE_NOTIFIER
+        bool "State Notifier"
+	depends on TOUCHSCREEN_SYNAPTICS_DSX
+	default y
+	
 endif

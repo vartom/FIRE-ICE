@@ -141,6 +141,9 @@ BUFFER_FNS(Defer_Completion, defer_completion)
 	})
 #define page_has_buffers(page)	PagePrivate(page)
 
+void buffer_check_dirty_writeback(struct page *page,
+				     bool *dirty, bool *writeback);
+
 /*
  * Declarations
  */
@@ -275,7 +278,7 @@ static inline void get_bh(struct buffer_head *bh)
 
 static inline void put_bh(struct buffer_head *bh)
 {
-        smp_mb__before_atomic_dec();
+        smp_mb__before_atomic();
         atomic_dec(&bh->b_count);
 }
 

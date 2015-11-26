@@ -6,6 +6,9 @@
 
 #include <linux/ktime.h>
 #include <linux/tracepoint.h>
+#include <linux/ftrace_event.h>
+
+#define TPS(x)  tracepoint_string(x)
 
 DECLARE_EVENT_CLASS(cpu,
 
@@ -123,6 +126,33 @@ TRACE_EVENT(cpu_scale,
 		  (unsigned long)__entry->state)
 );
 
+TRACE_EVENT(pm_qos_request,
+
+	TP_PROTO(u32 class, s32 value, u32 priority, u64 request),
+
+	TP_ARGS(class, value, priority, request),
+
+	TP_STRUCT__entry(
+		__field(u32, class)
+		__field(s32, value)
+		__field(u32, priority)
+		__field(u64, request)
+	),
+
+	TP_fast_assign(
+		__entry->class = class;
+		__entry->value = value;
+		__entry->priority = priority;
+		__entry->request = request;
+	),
+
+	TP_printk("class=%lu, value=%d, prio=%lu, request=0x%lx",
+		  (unsigned long)__entry->class,
+		  (int)__entry->value,
+		  (unsigned long)__entry->priority,
+		  (unsigned long)__entry->request)
+);
+
 DEFINE_EVENT(cpu, cpu_frequency,
 
 	TP_PROTO(unsigned int frequency, unsigned int cpu_id),
@@ -130,21 +160,26 @@ DEFINE_EVENT(cpu, cpu_frequency,
 	TP_ARGS(frequency, cpu_id)
 );
 
-TRACE_EVENT(machine_suspend,
+TRACE_EVENT(suspend_resume,
 
-	TP_PROTO(unsigned int state),
+	TP_PROTO(const char *action, int val, bool start),
 
-	TP_ARGS(state),
+	TP_ARGS(action, val, start),
 
 	TP_STRUCT__entry(
-		__field(	u32,		state		)
+		__field(const char *, action)
+		__field(int, val)
+		__field(bool, start)
 	),
 
 	TP_fast_assign(
-		__entry->state = state;
+		__entry->action = action;
+		__entry->val = val;
+		__entry->start = start;
 	),
 
-	TP_printk("state=%lu", (unsigned long)__entry->state)
+	TP_printk("%s[%u] %s", __entry->action, (unsigned int)__entry->val,
+		(__entry->start)?"begin":"end")
 );
 
 DECLARE_EVENT_CLASS(wakeup_source,

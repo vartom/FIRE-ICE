@@ -40,6 +40,10 @@
 
 #include "mm.h"
 
+/* HACK: These should come from pgtable.h. Remove these when upgrading the kernel */
+#define pmd_pfn(pmd)  (((pmd_val(pmd) & PMD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
+#define pmd_sect(pmd) ((pmd_val(pmd) & PMD_TYPE_MASK) == PMD_TYPE_SECT)
+
 /*
  * Empty_zero_page is a special page that is used for zero-initialized data
  * and COW.
@@ -131,7 +135,7 @@ early_param("cachepolicy", early_cachepolicy);
 /*
  * Adjust the PMD section entries according to the CPU in use.
  */
-static void __init init_mem_pgprot(void)
+void __init init_mem_pgprot(void)
 {
 	pteval_t default_pgprot;
 	int i;
@@ -223,6 +227,7 @@ static void __init alloc_init_pmd(pud_t *pud, unsigned long addr,
 		next = pmd_addr_end(addr, end);
 		/* try section mapping first */
 		if (((addr | next | phys) & ~SECTION_MASK) == 0) {
+			pmd_t old_pmd = *pmd;
 			switch (type) {
 			case MT_NORMAL_NC:
 				set_pmd(pmd, __pmd(phys | PROT_SECT_NORMAL_NC));
@@ -236,9 +241,15 @@ static void __init alloc_init_pmd(pud_t *pud, unsigned long addr,
 			default:
 				BUG();
 			}
-		}
-		else
+			/*
+			 * Check for previous table entries created during
+			 * boot (__create_page_tables) and flush them
+			 */
+			if (!pmd_none(old_pmd))
+				flush_tlb_all();
+		} else {
 			alloc_init_pte(pmd, addr, next, __phys_to_pfn(phys), type);
+		}
 		phys += next - addr;
 	} while (pmd++, addr = next, addr != end);
 }
@@ -433,7 +444,6 @@ void __init paging_init(void)
 	 */
 	memblock_set_current_limit((PHYS_OFFSET & PGDIR_MASK) + PGDIR_SIZE);
 
-	init_mem_pgprot();
 	map_mem();
 
 	/*
@@ -498,6 +508,9 @@ int kern_addr_valid(unsigned long addr)
 	pmd = pmd_offset(pud, addr);
 	if (pmd_none(*pmd))
 		return 0;
+
+	if (pmd_sect(*pmd))
+		return pfn_valid(pmd_pfn(*pmd));
 
 	pte = pte_offset_kernel(pmd, addr);
 	if (pte_none(*pte))

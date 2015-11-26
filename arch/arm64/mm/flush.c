@@ -83,6 +83,10 @@ void __clean_dcache_page(struct page *page)
 void __sync_icache_dcache(pte_t pte, unsigned long addr)
 {
 	struct page *page = pte_page(pte);
+	unsigned long pfn = pte_pfn(pte);
+
+	if (!pfn_valid(pfn))
+		return;
 
 	/* no flushing needed for anonymous pages */
 	if (!page_mapping(page))
@@ -114,3 +118,4 @@ EXPORT_SYMBOL(flush_dcache_page);
 EXPORT_SYMBOL(flush_cache_all);
 EXPORT_SYMBOL(flush_icache_range);
 EXPORT_SYMBOL(__flush_dcache_area);
+EXPORT_SYMBOL(flush_dcache_louis);
