@@ -311,11 +311,10 @@ static int tegra_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	return 0;
 }
 
-static void tegra_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+static bool tegra_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 {
 	struct tegra_gpio_bank *bank;
-	int port;
-	int pin;
+	int port, pin, handled = false;
 	struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	chained_irq_enter(chip, desc);
@@ -328,11 +327,11 @@ static void tegra_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 			tegra_gpio_readl(GPIO_INT_ENB(gpio));
 
 		for_each_set_bit(pin, &sta, 8)
-			generic_handle_irq(gpio_to_irq(gpio + pin));
+			handled =  generic_handle_irq(gpio_to_irq(gpio + pin));
 	}
 
 	chained_irq_exit(chip, desc);
-
+	return handled == true;
 }
 
 #ifdef CONFIG_PM_SLEEP
