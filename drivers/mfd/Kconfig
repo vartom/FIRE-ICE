@@ -307,7 +307,7 @@ config MFD_88PM860X
 
 config MFD_MAX77665
 	bool "Maxim Semiconductor MAX77665 Companion PMIC Support"
-	depends on I2C=y && GENERIC_HARDIRQS
+	depends on I2C=y
 	select MFD_CORE
 	select REGMAP_I2C
 	select REGMAP_IRQ
@@ -450,7 +450,6 @@ config AIC3XXX_SPI_REGMAP
 
 config AIC3XXX_CORE
 	bool "Support for AIC3XXX audio codec"
-	depends on GENERIC_HARDIRQS
 	select MFD_CORE
 	select AIC3XXX_SPI_REGMAP
 	select AIC3XXX_I2C_REGMAP
@@ -1181,7 +1180,7 @@ config MFD_WM5110
 
 config MFD_TPS6591X
 	bool "TPS6591x Power Management chips"
-	depends on I2C && GPIOLIB && GENERIC_HARDIRQS
+	depends on I2C && GPIOLIB
 	select MFD_CORE
 	help
 	  If you say yes here you get support for the TPS6591X series of
@@ -1206,7 +1205,7 @@ config MFD_WM831X
 
 config MFD_RICOH583
 	bool "Ricoh RC5T583 Power Management system device"
-	depends on I2C && GPIOLIB && GENERIC_HARDIRQS
+	depends on I2C && GPIOLIB
 	select MFD_CORE
 	default n
 	help
