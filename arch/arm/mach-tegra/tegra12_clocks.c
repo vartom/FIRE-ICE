@@ -9270,7 +9270,7 @@ struct tegra_cpufreq_table_data *tegra_cpufreq_table_get(void)
 #define GRANULARITY_KHZ   25500
 #define GRANULARITY_END 1020000
 #define CPU_THROTTLE_FREQ 408000
-#define CPU_SUSPEND_FREQ  408000
+#define CPU_SUSPEND_FREQ  510000
 
 struct tegra_cpufreq_table_data *tegra_cpufreq_table_get(void)
 {
