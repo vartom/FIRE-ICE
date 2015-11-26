@@ -14,3 +14,4 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_TEST_REPORTING) += synaptics_dsx_test_rep
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_PROXIMITY) += synaptics_dsx_proximity.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ACTIVE_PEN) += synaptics_dsx_active_pen.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_DEBUG) += synaptics_dsx_debug.o
+obj-$(CONFIG_STATE_NOTIFIER)		+= state_notifier.o
