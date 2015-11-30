@@ -218,7 +218,7 @@ static const struct file_operations debug_shrinker_fops = {
 /*
  * Add a shrinker callback to be called from the vm
  */
-void register_shrinker(struct shrinker *shrinker)
+int register_shrinker(struct shrinker *shrinker)
 {
 	atomic_long_set(&shrinker->nr_in_batch, 0);
 	down_write(&shrinker_rwsem);

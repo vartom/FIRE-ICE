@@ -22,7 +22,7 @@ struct zpool {
 
 	struct zpool_driver *driver;
 	void *pool;
-	struct zpool_ops *ops;
+	const struct zpool_ops *ops;
 
 	struct list_head list;
 };
@@ -73,34 +73,8 @@ int zpool_unregister_driver(struct zpool_driver *driver)
 }
 EXPORT_SYMBOL(zpool_unregister_driver);
 
-/**
- * zpool_evict() - evict callback from a zpool implementation.
- * @pool:	pool to evict from.
- * @handle:	handle to evict.
- *
- * This can be used by zpool implementations to call the
- * user's evict zpool_ops struct evict callback.
- */
-int zpool_evict(void *pool, unsigned long handle)
-{
-	struct zpool *zpool;
-
-	spin_lock(&pools_lock);
-	list_for_each_entry(zpool, &pools_head, list) {
-		if (zpool->pool == pool) {
-			spin_unlock(&pools_lock);
-			if (!zpool->ops || !zpool->ops->evict)
-				return -EINVAL;
-			return zpool->ops->evict(zpool, handle);
-		}
-	}
-	spin_unlock(&pools_lock);
-
-	return -ENOENT;
-}
-EXPORT_SYMBOL(zpool_evict);
-
-static struct zpool_driver *zpool_get_driver(char *type)
+/* this assumes @type is null-terminated. */
+static struct zpool_driver *zpool_get_driver(const char *type)
 {
 	struct zpool_driver *driver;
 
@@ -129,6 +103,7 @@ static void zpool_put_driver(struct zpool_driver *driver)
 /**
  * zpool_create_pool() - Create a new zpool
  * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
+ * @name	The name of the zpool (e.g. zram0, zswap)
  * @gfp		The GFP flags to use when allocating the pool.
  * @ops		The optional ops callback.
  *
@@ -140,7 +115,8 @@ static void zpool_put_driver(struct zpool_driver *driver)
  *
  * Returns: New zpool on success, NULL on failure.
  */
-struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops)
+struct zpool *zpool_create_pool(const char *type, const char *name, gfp_t gfp,
+		const struct zpool_ops *ops)
 {
 	struct zpool_driver *driver;
 	struct zpool *zpool;
@@ -168,7 +144,7 @@ struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops)
 
 	zpool->type = driver->type;
 	zpool->driver = driver;
-	zpool->pool = driver->create(gfp, ops);
+	zpool->pool = driver->create(name, gfp, ops, zpool);
 	zpool->ops = ops;
 
 	if (!zpool->pool) {
