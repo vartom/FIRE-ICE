@@ -33,6 +33,7 @@
 #ifdef KERNEL_ABOVE_2_6_38
 #include <linux/input/mt.h>
 #endif
+#include <linux/wakelock.h>
 #ifdef CONFIG_STATE_NOTIFIER
 #include <linux/state_notifier.h>
 #endif
@@ -858,13 +859,14 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		if (retval < 0)
 			return 0;
 
-		if (detected_gestures) {
+		if(rmi4_data->gesture_sleep && detected_gestures) {
 			dev_dbg(rmi4_data->pdev->dev.parent, " %s, detected_gestures\n", __func__);
+			wake_lock_timeout(&rmi4_data->rmi4_wake_lock, 5*HZ);
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 1);
 			input_sync(rmi4_data->input_dev);
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 0);
 			input_sync(rmi4_data->input_dev);
-			rmi4_data->suspend = false;
+			rmi4_data->gesture_sleep = false;
 		}
 
 		return 0;
@@ -2806,7 +2808,7 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	rmi4_data->fingers_on_2d = false;
 	rmi4_data->f11_wakeup_gesture = false;
 	rmi4_data->f12_wakeup_gesture = false;
-
+	rmi4_data->gesture_sleep = false;
 	rmi4_data->irq_enable = synaptics_rmi4_irq_enable;
 	rmi4_data->reset_device = synaptics_rmi4_reset_device;
 
@@ -2904,7 +2906,10 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 				__func__);
 		goto err_enable_irq;
 	}
-
+	device_init_wakeup(&rmi4_data->input_dev->dev, true);
+	wake_lock_init(&rmi4_data->rmi4_wake_lock,
+			WAKE_LOCK_SUSPEND, "rmi4_wake_lock");
+			
 	for (attr_count = 0; attr_count < ARRAY_SIZE(attrs); attr_count++) {
 		retval = sysfs_create_file(&rmi4_data->input_dev->dev.kobj,
 				&attrs[attr_count].attr);
@@ -2933,6 +2938,7 @@ err_sysfs:
 	}
 
 	synaptics_rmi4_irq_enable(rmi4_data, false);
+	wake_lock_destroy(&rmi4_data->rmi4_wake_lock);
 	free_irq(rmi4_data->irq, rmi4_data);
 
 err_enable_irq:
@@ -3122,6 +3128,20 @@ static void synaptics_rmi4_f12_wg(struct synaptics_rmi4_data *rmi4_data,
 				"%s: Failed to change reporting mode\n",
 				__func__);
 		return;
+	}
+
+	if (enable) {
+		if (device_may_wakeup(&rmi4_data->input_dev->dev) &&
+				!enable_irq_wake(rmi4_data->irq)) {
+			rmi4_data->gesture_sleep = true;
+			dev_info(rmi4_data->pdev->dev.parent,
+					"%s: Change into gesture mode\n", __func__);
+		}
+	} else {
+		rmi4_data->gesture_sleep = false;
+		disable_irq_wake(rmi4_data->irq);
+		dev_info(rmi4_data->pdev->dev.parent,
+				"%s: exist gesture mode\n", __func__);
 	}
 
 	return;
