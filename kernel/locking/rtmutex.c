@@ -254,6 +254,7 @@ struct task_struct *rt_mutex_get_top_task(struct task_struct *task)
 	return task_top_pi_waiter(task)->task;
 }
 
+/*
 * Called by sched_setscheduler() to check whether the priority change
 * is overruled by a possible priority boosting.
 */
