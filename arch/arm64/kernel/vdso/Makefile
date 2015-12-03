@@ -1,5 +1,3 @@
-GCOV_PROFILE := n
-
 #
 # Building a vDSO image for AArch64.
 #
