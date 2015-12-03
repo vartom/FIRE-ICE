@@ -132,8 +132,7 @@ CONFIG_PANIC_TIMEOUT=5
 CONFIG_EXPERT=y
 # CONFIG_UID16 is not set
 # CONFIG_SYSCTL_SYSCALL is not set
-CONFIG_KALLSYMS=y
-CONFIG_KALLSYMS_ALL=y
+# CONFIG_KALLSYMS is not set
 CONFIG_PRINTK=y
 CONFIG_BUG=y
 CONFIG_BASE_FULL=y
@@ -431,7 +430,7 @@ CONFIG_ZSMALLOC=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="no_console_suspend=1 tegra_wdt.enable_on_probe=1 tegra_wdt.heartbeat=120 androidboot.hardware=flounder"
+CONFIG_CMDLINE="tegra_wdt.enable_on_probe=1 tegra_wdt.heartbeat=120 androidboot.hardware=flounder"
 # CONFIG_CMDLINE_FROM_BOOTLOADER is not set
 CONFIG_CMDLINE_EXTEND=y
 # CONFIG_CMDLINE_FORCE is not set
@@ -3965,9 +3964,8 @@ CONFIG_HAVE_DEBUG_KMEMLEAK=y
 # CONFIG_DEBUG_STACK_USAGE is not set
 # CONFIG_DEBUG_KOBJECT is not set
 CONFIG_HAVE_DEBUG_BUGVERBOSE=y
-CONFIG_DEBUG_BUGVERBOSE=y
-CONFIG_DEBUG_INFO=y
-CONFIG_DEBUG_INFO_REDUCED=y
+# CONFIG_DEBUG_BUGVERBOSE is not set
+# CONFIG_DEBUG_INFO is not set
 # CONFIG_DEBUG_VM is not set
 # CONFIG_DEBUG_WRITECOUNT is not set
 # CONFIG_DEBUG_MEMORY_INIT is not set
