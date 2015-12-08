@@ -1864,6 +1864,8 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 				int ret;
 				unsigned int fault_flags = 0;
 
+				mutex_unlock(&s_follow_page_lock);
+
 				/* For mlock, just skip the stack guard page. */
 				if (foll_flags & FOLL_MLOCK) {
 					if (stack_guard_page(vma, start))
@@ -1927,6 +1929,7 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 					foll_flags &= ~FOLL_WRITE;
 
 				cond_resched();
+				mutex_lock(&s_follow_page_lock);
 			}
 			if (IS_ERR(page))
 				return i ? i : PTR_ERR(page);
