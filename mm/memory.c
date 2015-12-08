@@ -1850,6 +1850,7 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 			struct page *page;
 			unsigned int foll_flags = gup_flags;
 			unsigned int page_increm;
+			static DEFINE_MUTEX(s_follow_page_lock);
 
 			/*
 			 * If we have a pending SIGKILL, don't keep faulting
