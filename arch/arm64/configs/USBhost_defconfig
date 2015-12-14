@@ -430,7 +430,7 @@ CONFIG_ZSMALLOC=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="tegra_wdt.enable_on_probe=1 tegra_wdt.heartbeat=120 androidboot.hardware=flounder"
+CONFIG_CMDLINE="tegra_wdt.enable_on_probe=1 tegra_wdt.heartbeat=120 androidboot.hardware=flounder androidboot.selinux=disabled"
 # CONFIG_CMDLINE_FROM_BOOTLOADER is not set
 CONFIG_CMDLINE_EXTEND=y
 # CONFIG_CMDLINE_FORCE is not set
