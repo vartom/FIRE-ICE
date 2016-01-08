@@ -19,10 +19,7 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
 KBUILD_DEFCONFIG := defconfig
 
-# O2_FLAGS := \
-	-fgcse-sm \
-	-fgcse-lm \
-	-fgcse-las \
+O2_FLAGS := \
 	-fgraphite \
 	-ftree-partial-pre \
 	-fgcse-after-reload \
@@ -34,9 +31,9 @@ O1_FLAGS := \
 	-mtune=cortex-a57 \
 	--param l1-cache-size=64 \
 	--param l2-cache-size=2048 \
-	--param l1-cache-line-size=192 \
+	--param l1-cache-line-size=128 \
 
-KBUILD_CFLAGS	+= -pipe -fno-pic -mgeneral-regs-only $(O1_FLAGS)
+KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
