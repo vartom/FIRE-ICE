@@ -29,9 +29,9 @@ O2_FLAGS := \
 
 O1_FLAGS := \
 	-mtune=cortex-a57 \
-	--param l1-cache-size=64 \
+	--param l1-cache-size=192 \
 	--param l2-cache-size=2048 \
-	--param l1-cache-line-size=128 \
+	--param l1-cache-line-size=64 \
 
 KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
