@@ -90,11 +90,11 @@ struct iommu_ops {
 	int (*attach_dev)(struct iommu_domain *domain, struct device *dev);
 	void (*detach_dev)(struct iommu_domain *domain, struct device *dev);
 	int (*map)(struct iommu_domain *domain, unsigned long iova,
-		   phys_addr_t paddr, size_t size, unsigned long prot);
+		   phys_addr_t paddr, size_t size, int prot);
 	int (*map_pages)(struct iommu_domain *domain, unsigned long iova,
-		    struct page **pages, size_t count, unsigned long prot);
+		    struct page **pages, size_t count, int prot);
 	int (*map_sg)(struct iommu_domain *domain, unsigned long iova,
-		    struct scatterlist *sgl, int nents, unsigned long prot);
+		    struct scatterlist *sgl, int nents, int prot);
 	size_t (*unmap)(struct iommu_domain *domain, unsigned long iova,
 		     size_t size);
 	phys_addr_t (*iova_to_phys)(struct iommu_domain *domain, dma_addr_t iova);
@@ -137,11 +137,11 @@ extern int iommu_attach_device(struct iommu_domain *domain,
 extern void iommu_detach_device(struct iommu_domain *domain,
 				struct device *dev);
 extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
-		     phys_addr_t paddr, size_t size, unsigned long prot);
+		     phys_addr_t paddr, size_t size, int prot);
 extern int iommu_map_pages(struct iommu_domain *domain, unsigned long iova,
-		    struct page **pages, size_t count, unsigned long prot);
+		    struct page **pages, size_t count, int prot);
 extern int iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
-			struct scatterlist *sgl, int nents, unsigned long prot);
+			struct scatterlist *sgl, int nents, int prot);
 extern size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova,
 		       size_t size);
 extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova);
@@ -254,7 +254,7 @@ static inline void iommu_detach_device(struct iommu_domain *domain,
 }
 
 static inline int iommu_map(struct iommu_domain *domain, unsigned long iova,
-			    phys_addr_t paddr, int gfp_order, unsigned long prot)
+			    phys_addr_t paddr, int gfp_order, int prot)
 {
 	return -ENODEV;
 }
