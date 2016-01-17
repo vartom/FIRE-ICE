@@ -85,8 +85,6 @@ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
 int dma_get_contiguous_stats(struct device *dev,
 			struct dma_contiguous_stats *stats);
 
-bool dma_contiguous_should_replace_page(struct page *page);
-int dma_contiguous_enable_replace_pages(struct device *dev);
 #else
 
 struct dma_contiguous_stats;
@@ -128,18 +126,6 @@ int dma_get_contiguous_stats(struct device *dev,
 			struct dma_contiguous_stats *stats)
 {
 	return -ENOSYS;
-}
-
-static inline
-bool dma_contiguous_should_replace_page(struct page *page)
-{
-	return false;
-}
-
-static inline
-int dma_contiguous_enable_replace_pages(struct device *dev)
-{
-	return 0;
 }
 #endif
 
