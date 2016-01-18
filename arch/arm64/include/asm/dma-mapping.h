@@ -187,7 +187,7 @@ static inline void init_consistent_dma_size(unsigned long size) { }
 /* FIXME: copied from arch/arm */
 static inline size_t dma_iova_get_free_max(struct device *dev)
 {
-	struct dma_map_ops *ops = get_dma_ops(dev);
+	const struct dma_map_ops *ops = get_dma_ops(dev);
 	BUG_ON(!ops);
 	BUG_ON(!ops->iova_get_free_max);
 	return ops->iova_get_free_max(dev);

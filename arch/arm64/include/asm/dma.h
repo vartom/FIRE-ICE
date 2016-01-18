@@ -1,12 +1,13 @@
+/*
+ * Based on linux/arch/arm/include/asm/dma.h
+ */
 #ifndef __ASM_ARM_DMA_H
 #define __ASM_ARM_DMA_H
 
 /*
  * This is the maximum virtual address which can be DMA'd from.
  */
-#ifdef CONFIG_ZONE_DMA32
-#define MAX_DMA_ADDRESS	0xffffffffUL
-#endif
+#define MAX_DMA_ADDRESS	(~0ULL)
 
 #ifdef CONFIG_PCI
 extern int isa_dma_bridge_buggy;

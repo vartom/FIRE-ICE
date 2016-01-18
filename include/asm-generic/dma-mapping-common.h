@@ -33,7 +33,7 @@ static inline dma_addr_t dma_map_pages_at_attrs(struct device *dev,
 						enum dma_data_direction dir,
 						struct dma_attrs *attrs)
 {
-	struct dma_map_ops *ops = get_dma_ops(dev);
+	const struct dma_map_ops *ops = get_dma_ops(dev);
 	dma_addr_t addr;
 
 	BUG_ON(!valid_dma_direction(dir));
@@ -49,7 +49,7 @@ static inline dma_addr_t dma_map_single_at_attrs(struct device *dev, void *ptr,
 					      enum dma_data_direction dir,
 					      struct dma_attrs *attrs)
 {
-	struct dma_map_ops *ops = get_dma_ops(dev);
+	const struct dma_map_ops *ops = get_dma_ops(dev);
 	dma_addr_t addr;
 
 	kmemcheck_mark_initialized(ptr, size);
