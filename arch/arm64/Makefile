@@ -19,8 +19,18 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
 KBUILD_DEFCONFIG := defconfig
 
-KBUILD_CFLAGS	+= -mgeneral-regs-only
-KBUILD_CFLAGS	+= -fno-pic
+O2_FLAGS := \
+	-fgraphite \
+	-fgraphite-identity \
+	-floop-nest-optimize \
+
+O1_FLAGS := \
+	-mtune=cortex-a57 \
+	--param l1-cache-size=192 \
+	--param l2-cache-size=2048 \
+	--param l1-cache-line-size=64 \
+
+KBUILD_CFLAGS	+= -fno-pic -mgeneral-regs-only $(O1_FLAGS) $(O2_FLAGS)
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
