@@ -23,15 +23,12 @@
 
 #include <asm-generic/dma-coherent.h>
 
-#include <xen/xen.h>
-#include <asm/xen/hypervisor.h>
-
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 extern const struct dma_map_ops *dma_ops;
 extern const struct dma_map_ops coherent_swiotlb_dma_ops;
 extern const struct dma_map_ops noncoherent_swiotlb_dma_ops;
 
-static inline const struct dma_map_ops *__generic_dma_ops(struct device *dev)
+static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
 {
 	if (unlikely(!dev) || !dev->archdata.dma_ops)
 		return dma_ops;
@@ -43,14 +40,6 @@ static inline void set_dma_ops(struct device *dev,
 			const struct dma_map_ops *ops)
 {
 	dev->archdata.dma_ops = ops;
-}
-
-static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-{
-	if (xen_initial_domain())
-		return xen_dma_ops;
-	else
-		return __generic_dma_ops(dev);
 }
 
 #include <asm-generic/dma-mapping-common.h>
