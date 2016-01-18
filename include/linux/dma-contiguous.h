@@ -59,6 +59,11 @@ struct device;
 
 #ifdef CONFIG_CMA
 
+struct dma_contiguous_stats {
+	phys_addr_t base;
+	size_t size;
+};
+
 /*
  * There is always at least global CMA area and a few optional device
  * private areas configured in kernel .config.
@@ -121,6 +126,8 @@ unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
 				       unsigned int order);
 bool dma_release_from_contiguous(struct device *dev, unsigned long pfn,
 				 int count);
+int dma_get_contiguous_stats(struct device *dev,
+			struct dma_contiguous_stats *stats);
 
 #else
 
@@ -162,6 +169,13 @@ static inline unsigned long cma_total_pages(struct device *dev)
 	return 0;
 }
 
+
+static inline
+int dma_get_contiguous_stats(struct device *dev,
+			struct dma_contiguous_stats *stats)
+{
+	return -ENOSYS;
+}
 #endif
 
 #endif
