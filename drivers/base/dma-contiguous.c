@@ -588,12 +588,13 @@ static void clear_cma_bitmap(struct cma *cma, unsigned long pfn, int count)
  * global one. Requires architecture specific get_dev_cma_area() helper
  * function.
  */
-unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
-				       unsigned int align)
+unsigned long dma_alloc_at_from_contiguous(struct device *dev, int count,
+				       unsigned int align, phys_addr_t at_addr)
 {
 	unsigned long mask, pfn = 0, pageno, start = 0;
 	struct cma *cma = dev_get_cma_area(dev);
 	int ret = 0;
+	unsigned long start_pfn = __phys_to_pfn(at_addr);
 	int retry_after_sleep = 0;
 
 	if (!cma || !cma->count)
@@ -610,12 +611,15 @@ unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
 
 	mask = (1 << align) - 1;
 
+	if (start_pfn && start_pfn < cma->base_pfn)
+		return NULL;
+	start = start_pfn ? start_pfn - cma->base_pfn : start;
 
 	for (;;) {
 		mutex_lock(&cma->lock);
 		pageno = bitmap_find_next_zero_area(cma->bitmap, cma->count,
 						    start, count, mask);
-		if (pageno >= cma->count) {
+		if (pageno >= cma->count || (start && start != pageno)) {
 			if (retry_after_sleep == 0) {
 				pfn = 0;
 				start = 0;
@@ -652,7 +656,7 @@ unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
 		}
 		if (ret == 0) {
 			break;
-		} else if (ret != -EBUSY) {
+		} else if (ret != -EBUSY || start) {
 			clear_cma_bitmap(cma, pfn, count);
 			pfn = 0;
 			break;
@@ -667,6 +671,23 @@ unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
 
 	pr_debug("%s(): returned %lx\n", __func__, pfn);
 	return pfn;
+}
+
+/**
+ * dma_alloc_from_contiguous() - allocate pages from contiguous area
+ * @dev:   Pointer to device for which the allocation is performed.
+ * @count: Requested number of pages.
+ * @align: Requested alignment of pages (in PAGE_SIZE order).
+ *
+ * This function allocates memory buffer for specified device. It uses
+ * device specific contiguous memory area if available or the default
+ * global one. Requires architecture specific get_dev_cma_area() helper
+ * function.
+ */
+unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
+				       unsigned int align)
+{
+	return dma_alloc_at_from_contiguous(dev, count, align, 0);
 }
 
 /**
