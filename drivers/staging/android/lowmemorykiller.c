@@ -120,7 +120,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	int other_free;
 	int other_file;
 	unsigned long nr_to_scan = sc->nr_to_scan;
-	si_swapinfo(&swap_info);
 
 	rcu_read_lock();
 	tsk = current->group_leader;
@@ -136,20 +135,18 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			return 0;
 	}
 
-	other_free = global_page_state(NR_FREE_PAGES) -
-			 global_page_state(NR_FREE_CMA_PAGES)
+	si_swapinfo(&swap_info);
+
+	other_free = global_page_state(NR_FREE_PAGES)
+			 - global_page_state(NR_FREE_CMA_PAGES)
 			 + swap_info.freeswap
 #ifdef CONFIG_TEGRA_NVMAP
 			 + nvmap_page_pool_get_unused_pages()
 #endif
 			 ;
 	other_file = global_page_state(NR_FILE_PAGES)
-			- global_page_state(NR_SHMEM)
-			- global_page_state(NR_FILE_MAPPED)
-			- total_swapcache_pages();
-
-	if (other_file < 0)
-		other_file = 0;
+						- global_page_state(NR_SHMEM)
+						- total_swapcache_pages();
 
 	if (lowmem_adj_size < array_size)
 		array_size = lowmem_adj_size;
