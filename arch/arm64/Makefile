@@ -21,8 +21,11 @@ KBUILD_DEFCONFIG := defconfig
 
 O2_FLAGS := \
 	-fgraphite \
+	-ftree-partial-pre \
+	-fgcse-after-reload \
 	-fgraphite-identity \
 	-floop-nest-optimize \
+	-fpredictive-commoning \
 
 O1_FLAGS := \
 	-mtune=cortex-a57 \
