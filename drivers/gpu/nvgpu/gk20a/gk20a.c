@@ -1601,8 +1601,8 @@ void gk20a_enable(struct gk20a *g, u32 units)
 	pmc = gk20a_readl(g, mc_enable_r());
 	pmc |= units;
 	gk20a_writel(g, mc_enable_r(), pmc);
-	gk20a_readl(g, mc_enable_r());
 	spin_unlock(&g->mc_enable_lock);
+	gk20a_readl(g, mc_enable_r());
 
 	udelay(20);
 }
