@@ -1195,11 +1195,8 @@ static int gk20a_pm_unrailgate(struct generic_pm_domain *domain)
 	struct gk20a_platform *platform = platform_get_drvdata(g->dev);
 	int ret = 0;
 
-	if (platform->unrailgate) {
-		mutex_lock(&platform->railgate_lock);
+	if (platform->unrailgate)
 		ret = platform->unrailgate(platform->g->dev);
-		mutex_unlock(&platform->railgate_lock);
-	}
 
 	return ret;
 }
@@ -1263,8 +1260,6 @@ static int gk20a_pm_init(struct platform_device *dev)
 {
 	struct gk20a_platform *platform = platform_get_drvdata(dev);
 	int err = 0;
-
-	mutex_init(&platform->railgate_lock);
 
 	/* Initialise pm runtime */
 	if (platform->clockgate_delay) {
@@ -1639,13 +1634,6 @@ int gk20a_do_idle(void)
 	/* acquire busy lock to block other busy() calls */
 	down_write(&g->busy_lock);
 
-	/* acquire railgate lock to prevent unrailgate in midst of do_idle() */
-	mutex_lock(&platform->railgate_lock);
-
-	/* check if it is already railgated ? */
-	if (platform->is_railgated(pdev))
-		return 0;
-
 	/* prevent suspend by incrementing usage counter */
 	pm_runtime_get_noresume(&pdev->dev);
 
@@ -1683,12 +1671,11 @@ int gk20a_do_idle(void)
 	}
 
 	/* GPU is not rail gated by now, return error */
-	goto fail_timeout;
+	up_write(&g->busy_lock);
+	return -EBUSY;
 
 fail:
 	pm_runtime_put_noidle(&pdev->dev);
-fail_timeout:
-	mutex_unlock(&platform->railgate_lock);
 	up_write(&g->busy_lock);
 	return -EBUSY;
 }
@@ -1702,10 +1689,8 @@ int gk20a_do_unidle(void)
 		bus_find_device_by_name(&platform_bus_type,
 		NULL, "gk20a.0"));
 	struct gk20a *g = get_gk20a(pdev);
-	struct gk20a_platform *platform = dev_get_drvdata(&pdev->dev);
 
 	/* release the lock and open up all other busy() calls */
-	mutex_unlock(&platform->railgate_lock);
 	up_write(&g->busy_lock);
 
 	return 0;
