@@ -106,14 +106,6 @@ static inline u32 gr_intr_illegal_class_reset_f(void)
 {
 	return 0x20;
 }
-static inline u32 gr_intr_fecs_error_pending_f(void)
-{
-	return 0x80000;
-}
-static inline u32 gr_intr_fecs_error_reset_f(void)
-{
-	return 0x80000;
-}
 static inline u32 gr_intr_class_error_pending_f(void)
 {
 	return 0x100000;
@@ -137,10 +129,6 @@ static inline u32 gr_intr_firmware_method_pending_f(void)
 static inline u32 gr_intr_firmware_method_reset_f(void)
 {
 	return 0x100;
-}
-static inline u32 gr_fecs_intr_r(void)
-{
-	return 0x00400144;
 }
 static inline u32 gr_intr_nonstall_r(void)
 {
