@@ -22,7 +22,6 @@
 #include <linux/pm_runtime.h>
 #include <linux/kernel.h>
 #include <linux/fb.h>
-#include <linux/gk20a.h>
 
 #include <mach/clk.h>
 
@@ -471,55 +470,6 @@ static ssize_t emc3d_ratio_read(struct device *device,
 
 static DEVICE_ATTR(emc3d_ratio, ROOTRW, emc3d_ratio_read, emc3d_ratio_store);
 
-static ssize_t force_idle_store(struct device *device,
-	struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct platform_device *ndev = to_platform_device(device);
-	struct gk20a *g = get_gk20a(ndev);
-	unsigned long val = 0;
-	int err = 0;
-
-	if (kstrtoul(buf, 10, &val) < 0)
-		return -EINVAL;
-
-	if (val) {
-		if (g->forced_idle)
-			return count; /* do nothing */
-		else {
-			err = gk20a_do_idle();
-			if (!err) {
-				g->forced_idle = 1;
-				dev_info(device, "gpu is idle : %d\n",
-					g->forced_idle);
-			}
-		}
-	} else {
-		if (!g->forced_idle)
-			return count; /* do nothing */
-		else {
-			err = gk20a_do_unidle();
-			if (!err) {
-				g->forced_idle = 0;
-				dev_info(device, "gpu is idle : %d\n",
-					g->forced_idle);
-			}
-		}
-	}
-
-	return count;
-}
-
-static ssize_t force_idle_read(struct device *device,
-	struct device_attribute *attr, char *buf)
-{
-	struct platform_device *ndev = to_platform_device(device);
-	struct gk20a *g = get_gk20a(ndev);
-
-	return sprintf(buf, "%d\n", g->forced_idle ? 1 : 0);
-}
-
-static DEVICE_ATTR(force_idle, ROOTRW, force_idle_read, force_idle_store);
-
 void gk20a_remove_sysfs(struct device *dev)
 {
 	device_remove_file(dev, &dev_attr_elcg_enable);
@@ -532,7 +482,6 @@ void gk20a_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_counters_reset);
 	device_remove_file(dev, &dev_attr_railgate_delay);
 	device_remove_file(dev, &dev_attr_clockgate_delay);
-	device_remove_file(dev, &dev_attr_force_idle);
 	device_remove_file(dev, &dev_attr_aelpg_param);
 	device_remove_file(dev, &dev_attr_aelpg_enable);
 }
@@ -551,7 +500,6 @@ void gk20a_create_sysfs(struct platform_device *dev)
 	error |= device_create_file(&dev->dev, &dev_attr_counters_reset);
 	error |= device_create_file(&dev->dev, &dev_attr_railgate_delay);
 	error |= device_create_file(&dev->dev, &dev_attr_clockgate_delay);
-	error |= device_create_file(&dev->dev, &dev_attr_force_idle);
 	error |= device_create_file(&dev->dev, &dev_attr_aelpg_param);
 	error |= device_create_file(&dev->dev, &dev_attr_aelpg_enable);
 
