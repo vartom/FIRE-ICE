@@ -756,9 +756,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	if (!g->power_on)
 		return 0;
 
-	ret = gk20a_channel_suspend(g);
-	if (ret)
-		return ret;
+	ret |= gk20a_channel_suspend(g);
 
 	/*
 	 * After this point, gk20a interrupts should not get
