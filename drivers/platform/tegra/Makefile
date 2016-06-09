@@ -30,6 +30,9 @@ else
 obj-$(CONFIG_ARCH_TEGRA_12x_SOC) += tegra12_dvfs.o
 endif
 obj-$(CONFIG_ARCH_TEGRA_HAS_CL_DVFS) += tegra_cl_dvfs.o
+endif
+
+
 
 obj-$(CONFIG_CPU_FREQ)                  += cpu-tegra.o
 obj-y += flowctrl.o
@@ -56,7 +59,7 @@ obj-$(CONFIG_ARCH_TEGRA_12x_SOC) += tegra12_clocks.o
 
 obj-$(CONFIG_PM_SLEEP) += tegra-wakeups.o
 
-obj-y += tegra_core_volt_cap.o
+obj-$(CONFIG_TEGRA_CORE_VOLT_CAP) += tegra_core_volt_cap.o
 obj-$(CONFIG_ARCH_TEGRA_12x_SOC) += wakeups-t12x.o
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += wakeups-t21x.o
 
@@ -85,7 +88,7 @@ obj-y += latency_allowance.o
 obj-$(CONFIG_ARCH_TEGRA_12x_SOC)        += tegra12x_la.o
 
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += tegra21_dvfs.o
-
+endif
 
 obj-$(CONFIG_ARCH_TEGRA_13x_SOC)        += tegra13_speedo.o
 
@@ -103,7 +106,7 @@ obj-$(CONFIG_ARCH_TEGRA_HAS_CL_DVFS) += tegra_cl_dvfs.o
 obj-$(CONFIG_TEGRA_PCI) += pcie.o
 
 obj-$(CONFIG_TEGRA_MC_DOMAINS) += pm_domains.o
-
+obj-y += bond_out.o
 obj-$(CONFIG_DEBUG_ICEDCC) += sysfs-dcc.o
 
 ifeq ($(CONFIG_TEGRA_SOCTHERM),y)
