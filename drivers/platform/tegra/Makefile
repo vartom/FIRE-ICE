@@ -30,8 +30,6 @@ else
 obj-$(CONFIG_ARCH_TEGRA_12x_SOC) += tegra12_dvfs.o
 endif
 obj-$(CONFIG_ARCH_TEGRA_HAS_CL_DVFS) += tegra_cl_dvfs.o
-endif
-
 
 obj-$(CONFIG_CPU_FREQ)                  += cpu-tegra.o
 obj-y += flowctrl.o
@@ -88,7 +86,6 @@ obj-y += latency_allowance.o
 obj-$(CONFIG_ARCH_TEGRA_12x_SOC)        += tegra12x_la.o
 
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += tegra21_dvfs.o
-endif
 
 obj-$(CONFIG_ARCH_TEGRA_13x_SOC)        += tegra13_speedo.o
 
