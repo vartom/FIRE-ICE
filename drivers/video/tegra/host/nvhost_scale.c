@@ -402,7 +402,7 @@ int nvhost_scale_hw_init(struct platform_device *pdev)
 	struct nvhost_device_profile *profile = pdata->power_profile;
 
 	if (profile && profile->actmon)
-		return actmon_op().init(profile->actmon);
+		actmon_op().init(profile->actmon);
 
 	return 0;
 }
