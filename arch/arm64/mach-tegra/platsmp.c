@@ -29,6 +29,17 @@
 #include "common.h"
 #include "pm-soc.h"
 
+static DECLARE_BITMAP(tegra_cpu_power_up_by_fc, CONFIG_NR_CPUS) __read_mostly;
+static struct cpumask *tegra_cpu_power_mask =
+				to_cpumask(tegra_cpu_power_up_by_fc);
+#define tegra_cpu_power_map	(*(cpumask_t *)tegra_cpu_power_mask)
+
+static void __init tegra_smp_prepare_cpus(unsigned int max_cpus)
+{
+	/* Always mark the boot CPU as initially powered up */
+	cpumask_set_cpu(0, tegra_cpu_power_mask);
+}
+
 void (*tegra_boot_secondary_cpu)(int cpu);
 
 static int tegra_boot_secondary(unsigned int cpu, struct task_struct *idle)
@@ -44,6 +55,7 @@ static int tegra_boot_secondary(unsigned int cpu, struct task_struct *idle)
 }
 
 struct smp_operations tegra_smp_ops __initdata = {
+	.smp_prepare_cpus	= tegra_smp_prepare_cpus,
 	.smp_boot_secondary	= tegra_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
 	.cpu_die		= tegra_cpu_die,
