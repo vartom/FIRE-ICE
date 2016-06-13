@@ -721,23 +721,10 @@ static void tegra_suspend_finish(void)
 }
 
 static const struct platform_suspend_ops tegra_suspend_ops = {
+	.prepare_late	= tegra_suspend_prepare_late,
 	.valid		= tegra_suspend_valid,
 	.finish		= tegra_suspend_finish,
 	.enter		= tegra_suspend_enter,
-};
-
-/*
- * Note: The priority of this notifier needs to be higher than cpu_hotplug's
- * suspend notifier otherwise the subsequent cpu_up operation in
- * pm_suspend_notifier will fail
- */
-static struct notifier_block __cpuinitdata suspend_notifier = {
-	.notifier_call = pm_suspend_notifier,
-	.priority = 1,
-};
-
-static struct notifier_block suspend_clear_status = {
-	.notifier_call = pm_suspend_clear_status,
 };
 
 static ssize_t suspend_mode_show(struct kobject *kobj,
@@ -1050,12 +1037,6 @@ out:
 
 	if (pdata->suspend_mode == TEGRA_SUSPEND_LP0)
 		tegra_lp0_suspend_init();
-
-	if (register_pm_notifier(&suspend_notifier))
-		pr_err("%s: Failed to register suspend notifier\n", __func__);
-
-	if (register_pm_notifier(&suspend_clear_status))
-		pr_err("%s: Failed to register suspend status clearer\n", __func__);
 
 	suspend_set_ops(&tegra_suspend_ops);
 
