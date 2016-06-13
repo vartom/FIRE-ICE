@@ -22,7 +22,7 @@
 #include <linux/clockchips.h>
 #include <linux/completion.h>
 #include <linux/cpu.h>
-#include <linux/platform/tegra/common.h>
+#include "common.h"
 
 #include <asm/suspend.h>
 
