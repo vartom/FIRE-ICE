@@ -156,7 +156,7 @@ static void tegra132_boot_secondary_cpu(int cpu)
 }
 #endif
 
-void tegra_soc_suspend_init(void)
+void __tegra_soc_suspend_init(void)
 {
 	/* Notifier to disable/enable BGALLOW */
 	cpu_pm_register_notifier(&cpu_pm_notifier_block);
