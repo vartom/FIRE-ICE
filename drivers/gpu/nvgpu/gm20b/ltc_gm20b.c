@@ -77,9 +77,9 @@ static int gm20b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	if (max_comptag_lines > hw_max_comptag_lines)
 		max_comptag_lines = hw_max_comptag_lines;
 
-	nvhost_dbg_info("compbit backing store size : %d",
+	gk20a_dbg_info("compbit backing store size : %d",
 		compbit_backing_size);
-	nvhost_dbg_info("max comptag lines : %d",
+	gk20a_dbg_info("max comptag lines : %d",
 		max_comptag_lines);
 
 	if (tegra_platform_is_linsim())
@@ -113,7 +113,7 @@ static int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 	u32 slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(
 				gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r()));
 
-	nvhost_dbg_fn("");
+	gk20a_dbg_fn("");
 
 	if (gr->compbit_store.size == 0)
 		return 0;
@@ -158,7 +158,7 @@ static int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 					!tegra_platform_is_silicon());
 
 			if (!time_before(jiffies, end_jiffies)) {
-				nvhost_err(dev_from_gk20a(g),
+				gk20a_err(dev_from_gk20a(g),
 					   "comp tag clear timeout\n");
 				err = -EBUSY;
 				goto out;
@@ -178,7 +178,7 @@ static void gm20b_ltc_init_fs_state(struct gk20a *g)
 
 	g->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
 	g->ltc_count = gk20a_readl(g, pri_ringmaster_enum_ltc_r());
-	nvhost_dbg_info("%d ltcs out of %d", g->ltc_count, g->max_ltc_count);
+	gk20a_dbg_info("%d ltcs out of %d", g->ltc_count, g->max_ltc_count);
 
 	gk20a_writel(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r(),
 	g->ltc_count);
