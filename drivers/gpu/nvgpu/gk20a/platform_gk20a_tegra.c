@@ -205,9 +205,9 @@ static void gk20a_tegra_calibrate_emc(struct platform_device *pdev,
 
 	/* store gpu bw based on soc */
 	switch (cid) {
-	case TEGRA_CHIPID_TEGRA21:
+/*	case TEGRA_CHIPID_TEGRA21:
 		gpu_bw = TEGRA_GM20B_BW_PER_FREQ;
-		break;
+		break;*/
 	case TEGRA_CHIPID_TEGRA12:
 	case TEGRA_CHIPID_TEGRA13:
 		gpu_bw = TEGRA_GK20A_BW_PER_FREQ;
@@ -449,13 +449,13 @@ static int gk20a_tegra_probe(struct platform_device *dev)
 	/* WAR for bug 1547668: Disable railgating and scaling irrespective of
 	 * platform data if the rework has not been made. */
 
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA21) {
+/*	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA21) {
 		np = of_find_node_by_path("/gpu-dvfs-rework");
 		if (!(np && of_device_is_available(np))) {
 			platform->devfreq_governor = "";
 			dev_warn(&dev->dev, "board does not support scaling");
 		}
-	}
+	}*/
 
 	gk20a_tegra_get_clocks(dev);
 
