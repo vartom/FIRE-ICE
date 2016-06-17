@@ -38,7 +38,6 @@
 
 #include "../../../../arch/arm/mach-tegra/iomap.h"
 
-#include "nvhost_memmgr.h"
 #include "chip_support.h"
 #include "nvhost_scale.h"
 
