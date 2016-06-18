@@ -22,9 +22,7 @@
 #include <linux/tegra_pm_domains.h>
 #include <linux/tegra-powergate.h>
 #include <linux/platform_data/tegra_bpmp.h>
-#ifdef CONFIG_ARCH_TEGRA_21x_SOC
 #include <linux/irqchip/tegra-agic.h>
-#endif
 #include <linux/slab.h>
 
 #ifdef CONFIG_TEGRA_MC_DOMAINS
